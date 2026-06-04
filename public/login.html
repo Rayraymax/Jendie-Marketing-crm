@@ -1,47 +1,120 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JendieCRM – Login</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="login.css">
-  <title>CRM - Login</title>
 </head>
 <body>
-  <div class="login-container">
-    <h1>CRM Login</h1>
-    <form id="loginForm">
-      <input type="text" id="username" placeholder="Username" required>
-      <input type="password" id="password" placeholder="Password" required>
-      <button type="submit">Login</button>
-    </form>
+  <div class="login-wrap">
+    <div class="login-brand">
+      <img src="/school-crm-logo.png" alt="Jendie" onerror="this.style.display='none'">
+      <div class="login-brand-text">
+        <span class="login-brand-name">JendieCRM</span>
+        <span class="login-brand-sub">School leads · Kenya</span>
+      </div>
+    </div>
+
+    <div class="login-container">
+      <h1>Welcome back</h1>
+      <p>Sign in to your CRM account</p>
+
+      <div id="errorBanner" class="error-banner" style="display:none"></div>
+
+      <form id="loginForm" novalidate>
+        <div class="field-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" placeholder="Enter your username" autocomplete="username" required>
+        </div>
+        <div class="field-group">
+          <label for="password">Password</label>
+          <div class="password-wrap">
+            <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" required>
+            <button type="button" class="eye-toggle" id="eyeToggle" tabindex="-1">
+              <svg id="eyeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="login-btn" id="loginBtn">
+          <span id="loginBtnText">Sign In</span>
+          <span id="loginBtnSpinner" class="spinner" style="display:none"></span>
+        </button>
+      </form>
+
+      <p class="login-footer">Jendie Automobiles Limited · Kenya</p>
+    </div>
   </div>
 
   <script>
-    async function loginUser(username, password) {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
+    const API_BASE = window.location.hostname === "localhost"
+      ? "http://localhost:5000"
+      : "https://school-crm-sndl.onrender.com";
 
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('jwtToken', data.token);
+    const form = document.getElementById("loginForm");
+    const btn = document.getElementById("loginBtn");
+    const btnText = document.getElementById("loginBtnText");
+    const btnSpinner = document.getElementById("loginBtnSpinner");
+    const errorBanner = document.getElementById("errorBanner");
+    const eyeToggle = document.getElementById("eyeToggle");
+    const passwordInput = document.getElementById("password");
 
-        // Redirect based on role
-        if (data.role === 'marketer') {
-          window.location.href = "index.html"; // marketers → submission page
-        } else {
-          window.location.href = "dashboard.html"; // managers/staff/admin → dashboard
-        }
-      } else {
-        alert('Login failed. Please check your credentials.');
-      }
+    eyeToggle.addEventListener("click", () => {
+      const isPass = passwordInput.type === "password";
+      passwordInput.type = isPass ? "text" : "password";
+      document.getElementById("eyeIcon").innerHTML = isPass
+        ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+        : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    });
+
+    function showError(msg) {
+      errorBanner.textContent = msg;
+      errorBanner.style.display = "block";
     }
 
-    document.getElementById('loginForm').addEventListener('submit', (e) => {
+    function hideError() { errorBanner.style.display = "none"; }
+
+    function setLoading(on) {
+      btn.disabled = on;
+      btnText.style.display = on ? "none" : "inline";
+      btnSpinner.style.display = on ? "inline-block" : "none";
+    }
+
+    form.addEventListener("submit", async e => {
       e.preventDefault();
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-      loginUser(username, password);
+      hideError();
+      const username = document.getElementById("username").value.trim();
+      const password = passwordInput.value;
+      if (!username || !password) { showError("Please enter your username and password."); return; }
+
+      setLoading(true);
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          localStorage.setItem("jwtToken", data.token);
+          if (data.role === "marketer") {
+            window.location.href = "index.html";
+          } else {
+            window.location.href = "dashboard.html";
+          }
+        } else {
+          const err = await res.json().catch(() => ({}));
+          showError(err.message || "Incorrect username or password. Please try again.");
+        }
+      } catch {
+        showError("Unable to connect. Check your internet connection.");
+      } finally {
+        setLoading(false);
+      }
     });
   </script>
 </body>

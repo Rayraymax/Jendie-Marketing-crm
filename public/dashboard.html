@@ -2,716 +2,1023 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>CRM - Office Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JendieCRM – Dashboard</title>
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="dashboard.css">
-
-<style>
-
-.highlight{background:yellow;font-weight:bold;}
-
-.modal{
-display:none;
-position:fixed;
-z-index:100;
-left:0;
-top:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.4);
-}
-
-.modal-content{
-background:#fff;
-margin:10% auto;
-padding:20px;
-width:400px;
-border-radius:8px;
-}
-
-.close{
-float:right;
-font-size:26px;
-cursor:pointer;
-}
-
-.form-section{
-margin:20px;
-padding:15px;
-border:1px solid #ccc;
-border-radius:8px;
-}
-/* Optional: also make the follow-ups panel appear near it */
-#followUpsCard {
-    position: absolute;
-    top: 0px;          /* push it below the header */
-    right: 5px;
-    width: 150px;
-    background: #28a745;
-    color: white;
-    padding: 12px;
-    border-radius: 12px;
-    cursor: pointer;
-    z-index: 200;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-    transition: transform 0.2s ease;
-}
-
-#followUpsCard:hover {
-    transform: translateY(-5px);
-}
-
-#followUpsPanel ul{
-list-style:none;
-padding:0;
-margin:0;
-}
-
-#followUpsPanel li{
-margin-bottom:10px;
-}
-
-</style>
 </head>
-
 <body>
 
-<div id="followUpsCard">
-
-<h3>Follow-Ups</h3>
-
-<div style="display:flex;justify-content:space-between">
-<span>Today</span>
-<span id="followUpsCount" style="background:red;border-radius:50%;padding:6px 12px;font-weight:bold">0</span>
-</div>
-
-<div style="margin-top:10px">
-<label>Select Date</label>
-<input type="date" id="followUpFilterDate" style="width:100%">
-</div>
-
-<div style="margin-top:10px">
-<button id="showFollowUpsBtn">Show</button>
-<button id="resetFollowUpsBtn">Reset</button>
-</div>
-
-</div>
-
-<div id="followUpsPanel">
-<h4>Follow-Ups</h4>
-<ul id="followUpsList"></ul>
-</div>
-<!-- Fixed logo top-left -->
-<div class="logo-container">
-  <img src="/school-crm-logo.png" alt="School CRM Logo" class="logo-img">
-  <span class="logo-text">School CRM</span>
-</div>
-
-<header>
-<h1>Office Dashboard</h1>
- <p>Logged in as: <span id="userRole"></span></p>
-  <button onclick="logout()">Logout</button>
-
-  <div class="filters">
-    <input type="text" id="searchName" placeholder="Search by Lead Type or Contact Name">
-    <select id="filterInterest">
-      <option value="">Filter by Interest Level</option>
-      <option>Interested</option>
-      <option>Needs Follow-up</option>
-      <option>Not Interested</option>
-    </select>
-    <select id="filterAction">
-      <option value="">Filter by Next Action</option>
-      <option>Call</option>
-      <option>Email</option>
-      <option>Meeting</option>
-      <option>Demo</option>
-      <option>Other</option>
-    </select>
-    <label>Visit Date</label>
-    <input type="date" id="filterVisitDate">
-    <select id="filterMarketer">
-      <option value="">Filter by Marketer</option>
-    </select>
-    <button onclick="filterLeads()">Apply Filters</button>
-    <button onclick="resetFilters()">Reset</button>
-    <button onclick="exportCSV()">Export to CSV</button>
+<!-- ===================== SIDEBAR ===================== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">
+      <img src="/school-crm-logo.png" alt="Jendie" onerror="this.style.display='none'">
+      <div class="brand-initials">J</div>
+    </div>
+    <div class="brand-text">
+      <span class="brand-name">JendieCRM</span>
+      <span class="brand-sub">School leads · Kenya</span>
+    </div>
   </div>
-</header>
 
-<div id="addLeadButtonContainer" style="display:none;margin:20px">
-<button onclick="toggleAddLeadForm()">+ Add Lead</button>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">OVERVIEW</div>
+    <a href="#" class="nav-item active" data-view="dashboard">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+
+    <div class="nav-section-label">PIPELINE</div>
+    <a href="#" class="nav-item" data-view="leads">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Leads
+    </a>
+    <a href="#" class="nav-item" data-view="pipeline">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Pipeline
+      <span class="nav-badge live">Live</span>
+    </a>
+    <a href="#" class="nav-item" data-view="tasks">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Tasks
+    </a>
+
+    <div class="nav-section-label">ENGAGE</div>
+    <a href="#" class="nav-item" data-view="whatsapp">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      WhatsApp / SMS
+    </a>
+    <a href="#" class="nav-item" data-view="marketers">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 0 1 8 0v2"/><path d="M22 20v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Marketers
+    </a>
+    <a href="#" class="nav-item" data-view="reports">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Reports
+    </a>
+
+    <div class="nav-section-label">ACCOUNT</div>
+    <a href="#" class="nav-item" data-view="settings">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M4.93 19.07l1.41-1.41M19.07 19.07l-1.41-1.41M21 12h-2M5 12H3M12 21v-2M12 5V3"/></svg>
+      Settings
+    </a>
+    <a href="#" class="nav-item" id="adminNavItem" style="display:none" data-view="admin">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Admin
+    </a>
+  </nav>
+
+  <div class="sidebar-user">
+    <div class="user-avatar" id="sidebarAvatar">?</div>
+    <div class="user-info">
+      <span class="user-name" id="sidebarUsername">Loading…</span>
+      <span class="user-role-badge" id="sidebarRole">–</span>
+    </div>
+    <button class="logout-btn" onclick="logout()" title="Logout">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </button>
+  </div>
+</aside>
+
+<!-- ===================== MAIN ===================== -->
+<div class="main-wrapper">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="breadcrumb">
+        <span class="breadcrumb-app">JendieCRM</span>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-page" id="pageTitle">Dashboard</span>
+      </div>
+    </div>
+    <div class="topbar-center">
+      <div class="search-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchName" placeholder="Search leads, contacts…" oninput="filterLeads()">
+        <kbd>⌘K</kbd>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="county-filter-wrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <select id="filterLocation" onchange="filterLeads()">
+          <option value="">All counties</option>
+        </select>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <button class="btn-primary" onclick="openNewLeadModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Lead
+      </button>
+      <button class="icon-btn" id="themeToggle" title="Toggle theme">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button class="icon-btn notif-btn" id="notifBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="notif-dot" id="notifDot"></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===================== DASHBOARD VIEW ===================== -->
+  <main class="content" id="viewDashboard">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Marketing Dashboard</h1>
+        <p class="page-subtitle">Real-time view of school leads, follow-ups, and team activity.</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn-ghost" onclick="exportCSV()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export
+        </button>
+        <button class="btn-primary" onclick="openNewLeadModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Lead
+        </button>
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid" id="kpiGrid">
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">Total Leads</span>
+          <div class="kpi-icon kpi-icon--blue">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          </div>
+        </div>
+        <div class="kpi-value" id="kpiTotal">–</div>
+        <div class="kpi-delta positive" id="kpiTotalDelta">–</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">Active Follow-ups</span>
+          <div class="kpi-icon kpi-icon--coral">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+        </div>
+        <div class="kpi-value" id="kpiFollowups">–</div>
+        <div class="kpi-delta urgent" id="kpiFollowupsDelta">–</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">Conversion Rate</span>
+          <div class="kpi-icon kpi-icon--green">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+          </div>
+        </div>
+        <div class="kpi-value" id="kpiConversion">–</div>
+        <div class="kpi-delta muted" id="kpiConversionTarget">Target: 30%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">Top County</span>
+          <div class="kpi-icon kpi-icon--purple">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+        </div>
+        <div class="kpi-value" id="kpiTopCounty">–</div>
+        <div class="kpi-delta muted" id="kpiTopCountyCount">– leads</div>
+      </div>
+    </div>
+
+    <!-- Dashboard body: leads table + right panel -->
+    <div class="dashboard-body">
+      <!-- Recent Leads Table -->
+      <div class="table-card">
+        <div class="table-card-header">
+          <div>
+            <h2 class="card-title">Recent Leads</h2>
+            <p class="card-subtitle">Latest submissions across all marketers</p>
+          </div>
+          <a href="#" class="view-all-link" onclick="switchView('leads'); return false;">
+            View All
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+        </div>
+        <div class="filters-row">
+          <select id="filterInterest" onchange="filterLeads()">
+            <option value="">All statuses</option>
+            <option>Interested</option>
+            <option>Needs Follow-up</option>
+            <option>Not Interested</option>
+          </select>
+          <select id="filterAction" onchange="filterLeads()">
+            <option value="">All actions</option>
+            <option>Call</option>
+            <option>Email</option>
+            <option>Meeting</option>
+            <option>Demo</option>
+            <option>Other</option>
+          </select>
+          <select id="filterMarketer" onchange="filterLeads()">
+            <option value="">All marketers</option>
+          </select>
+          <div class="date-filter">
+            <label>Visit date</label>
+            <input type="date" id="filterVisitDate" onchange="filterLeads()">
+          </div>
+          <button class="btn-ghost-sm" onclick="resetFilters()">Reset</button>
+        </div>
+        <div class="table-wrap">
+          <table id="leadsTable">
+            <thead>
+              <tr>
+                <th>Lead</th>
+                <th>County</th>
+                <th>Contact</th>
+                <th>Services</th>
+                <th>Status</th>
+                <th>Follow-up</th>
+                <th>Submitted</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="leadsTableBody"></tbody>
+          </table>
+          <div class="empty-state" id="emptyLeads" style="display:none">
+            <div class="empty-icon">📋</div>
+            <h3>No leads found</h3>
+            <p>Try adjusting your filters or add a new lead</p>
+            <button class="btn-primary" onclick="openNewLeadModal()">+ New Lead</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel -->
+      <div class="right-panel">
+        <!-- Upcoming Follow-ups -->
+        <div class="panel-card" id="followUpsCard">
+          <div class="panel-card-header">
+            <h3 class="panel-title">Upcoming Follow-ups</h3>
+            <button class="icon-btn-sm" title="View calendar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </button>
+          </div>
+          <div class="followup-date-row">
+            <input type="date" id="followUpFilterDate" onchange="filterFollowUps()">
+            <button class="btn-ghost-sm" onclick="resetFollowUps()">Today</button>
+          </div>
+          <ul id="followUpsList" class="followups-list"></ul>
+          <div class="followups-empty" id="followupsEmpty" style="display:none">
+            <p>No follow-ups for this date 🎉</p>
+          </div>
+        </div>
+
+        <!-- Marketer Activity -->
+        <div class="panel-card activity-card">
+          <div class="panel-card-header">
+            <h3 class="panel-title">Marketer Activity</h3>
+          </div>
+          <p class="activity-summary" id="activitySummary">Loading activity…</p>
+          <ul class="activity-list" id="activityList"></ul>
+          <button class="btn-full-ghost" onclick="switchView('marketers')">View Marketers</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ===================== LEADS VIEW ===================== -->
+  <main class="content" id="viewLeads" style="display:none">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">All Leads</h1>
+        <p class="page-subtitle">Full pipeline across all marketers and counties</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn-ghost" onclick="exportCSV()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
+        <button class="btn-primary" onclick="openNewLeadModal()">+ New Lead</button>
+      </div>
+    </div>
+    <div class="table-card" style="margin-top:0">
+      <div class="filters-row">
+        <input type="text" id="searchNameLeads" placeholder="Search name, type, location…" oninput="filterLeads()">
+        <select id="filterInterestLeads" onchange="filterLeads()">
+          <option value="">All statuses</option>
+          <option>Interested</option>
+          <option>Needs Follow-up</option>
+          <option>Not Interested</option>
+        </select>
+        <select id="filterActionLeads" onchange="filterLeads()">
+          <option value="">All actions</option>
+          <option>Call</option><option>Email</option><option>Meeting</option><option>Demo</option><option>Other</option>
+        </select>
+        <select id="filterMarketerLeads" onchange="filterLeads()">
+          <option value="">All marketers</option>
+        </select>
+        <button class="btn-ghost-sm" onclick="resetFilters()">Reset</button>
+      </div>
+      <div class="table-wrap">
+        <table id="leadsTableFull">
+          <thead>
+            <tr>
+              <th>Lead</th>
+              <th>County</th>
+              <th>Contact</th>
+              <th>Phone</th>
+              <th>Email</th>
+              <th>Visit</th>
+              <th>Services</th>
+              <th>Status</th>
+              <th>Next Action</th>
+              <th>Follow-up</th>
+              <th>Submitted by</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="leadsTableFullBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- ===================== ADMIN VIEW ===================== -->
+  <main class="content" id="viewAdmin" style="display:none">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Admin</h1>
+        <p class="page-subtitle">User management and system settings</p>
+      </div>
+      <button class="btn-primary" onclick="openUserModal()">+ Create User</button>
+    </div>
+    <div class="table-card" style="margin-top:0">
+      <table id="usersTable">
+        <thead>
+          <tr><th>ID</th><th>Username</th><th>Role</th><th>Created</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="usersTableBody"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Placeholder views -->
+  <main class="content" id="viewPipeline" style="display:none">
+    <div class="page-header"><h1 class="page-title">Pipeline</h1></div>
+    <div class="coming-soon"><div class="cs-icon">🚀</div><h2>Pipeline / Kanban view coming soon</h2><p>Drag leads between stages: New → Contacted → Proposal → Won / Lost</p></div>
+  </main>
+  <main class="content" id="viewTasks" style="display:none">
+    <div class="page-header"><h1 class="page-title">Tasks</h1></div>
+    <div class="coming-soon"><div class="cs-icon">✅</div><h2>Tasks & reminders coming soon</h2></div>
+  </main>
+  <main class="content" id="viewWhatsapp" style="display:none">
+    <div class="page-header"><h1 class="page-title">WhatsApp / SMS</h1></div>
+    <div class="coming-soon"><div class="cs-icon">💬</div><h2>WhatsApp & SMS integration coming soon</h2></div>
+  </main>
+  <main class="content" id="viewMarketers" style="display:none">
+    <div class="page-header"><h1 class="page-title">Marketers</h1></div>
+    <div class="coming-soon"><div class="cs-icon">👥</div><h2>Marketer performance view coming soon</h2></div>
+  </main>
+  <main class="content" id="viewReports" style="display:none">
+    <div class="page-header"><h1 class="page-title">Reports</h1></div>
+    <div class="coming-soon"><div class="cs-icon">📊</div><h2>Reports & analytics coming soon</h2></div>
+  </main>
+  <main class="content" id="viewSettings" style="display:none">
+    <div class="page-header"><h1 class="page-title">Settings</h1></div>
+    <div class="coming-soon"><div class="cs-icon">⚙️</div><h2>Settings coming soon</h2></div>
+  </main>
+
+</div><!-- end .main-wrapper -->
+
+<!-- ===================== NEW LEAD MODAL ===================== -->
+<div class="modal" id="newLeadModal">
+  <div class="modal-content modal-lg">
+    <div class="modal-header">
+      <h3>New Lead</h3>
+      <button class="modal-close" onclick="closeModal('newLeadModal')">&times;</button>
+    </div>
+    <form id="addLeadForm" class="modal-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Lead Type *</label>
+          <select name="lead_type" id="lead_type" required>
+            <option value="">Select type</option>
+            <option>School</option>
+            <option>Firm</option>
+            <option>Individual</option>
+          </select>
+        </div>
+        <div class="form-group" id="schoolTypeGroup">
+          <label>School Type</label>
+          <select name="school_type">
+            <option value="">Select</option>
+            <option>Primary</option><option>Secondary</option><option>Private</option><option>Public</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Location / County</label>
+          <input type="text" name="location" placeholder="e.g. Nairobi, Kiambu">
+        </div>
+        <div class="form-group">
+          <label>Contact Name</label>
+          <input type="text" name="contact_name" placeholder="Full name">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Contact Role</label>
+          <select name="contact_role">
+            <option value="">Select role</option>
+            <option>Principal</option><option>Administrator</option><option>ICT Coordinator</option><option>Teacher</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="tel" name="phone" placeholder="+254 …">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" name="email" placeholder="email@example.com">
+        </div>
+        <div class="form-group">
+          <label>Date of Visit</label>
+          <input type="date" name="visit_date">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Interest Level *</label>
+        <select name="interest_level" required>
+          <option value="">Select</option>
+          <option>Interested</option><option>Needs Follow-up</option><option>Not Interested</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Services of Interest</label>
+        <div class="services-chips">
+          <label class="chip"><input type="checkbox" name="services" value="Speed Governors"> Speed Governors</label>
+          <label class="chip"><input type="checkbox" name="services" value="Trackers"> Trackers</label>
+          <label class="chip"><input type="checkbox" name="services" value="Insurance"> Insurance</label>
+          <label class="chip"><input type="checkbox" name="services" value="Dashcams"> Dashcams</label>
+          <label class="chip"><input type="checkbox" name="services" value="CCTV"> CCTV</label>
+          <label class="chip"><input type="checkbox" name="services" value="Fuel Management"> Fuel Management</label>
+          <label class="chip"><input type="checkbox" name="services" value="TrackMyKid"> TrackMyKid</label>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Next Action</label>
+          <select name="next_action">
+            <option value="">Select</option>
+            <option>Call</option><option>Email</option><option>Meeting</option><option>Demo</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Follow-up Date</label>
+          <input type="date" name="follow_up_date">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea name="notes" placeholder="Any relevant notes…" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Attach Image</label>
+        <input type="file" name="lead_image" accept="image/*">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-ghost" onclick="closeModal('newLeadModal')">Cancel</button>
+        <button type="submit" class="btn-primary">Save Lead</button>
+      </div>
+    </form>
+  </div>
 </div>
 
-<div id="addLeadSection" class="form-section" style="display:none">
-
-<h3>Add New Lead</h3>
-
-<form id="addLeadForm">
-
-<select id="lead_type" name="lead_type" required>
-<option value="">Lead Type</option>
-<option>School</option>
-<option>Firm</option>
-<option>Individual</option>
-</select>
-
-<input type="text" id="location" name="location" placeholder="Location">
-<input type="text" id="contact_name" name="contact_name" placeholder="Contact Name">
-
-<select id="contact_role" name="contact_role">
-<option value="">Role</option>
-<option>Principal</option>
-<option>Administrator</option>
-<option>ICT Coordinator</option>
-<option>Teacher</option>
-<option>Other</option>
-</select>
-
-<input type="tel" id="phone" name="phone" placeholder="Phone">
-<input type="email" id="email" name="email" placeholder="Email">
-
-<label>Visit Date</label>
-<input type="date" id="visit_date" name="visit_date">
-
-<select id="interest_level" name="interest_level">
-<option value="">Interest Level</option>
-<option>Interested</option>
-<option>Needs Follow-up</option>
-<option>Not Interested</option>
-</select>
-
-<label>Services</label>
-
-<label><input type="checkbox" name="services" value="Speed Governors">Speed Governors</label>
-<label><input type="checkbox" name="services" value="Trackers">Trackers</label>
-<label><input type="checkbox" name="services" value="Insurance">Insurance</label>
-<label><input type="checkbox" name="services" value="Dashcams">Dashcams</label>
-<label><input type="checkbox" name="services" value="CCTV">CCTV</label>
-<label><input type="checkbox" name="services" value="Fuel Management">Fuel Management</label>
-<label><input type="checkbox" name="services" value="TrackMyKid">TrackMyKid</label>
-
-<textarea id="notes" name="notes" placeholder="Notes"></textarea>
-
-<select id="next_action" name="next_action">
-<option value="">Next Action</option>
-<option>Call</option>
-<option>Email</option>
-<option>Meeting</option>
-<option>Demo</option>
-<option>Other</option>
-</select>
-
-<label>Follow Up</label>
-<input type="date" id="follow_up_date" name="follow_up_date">
-
-<input type="file" id="lead_image" name="lead_image">
-
-<button type="submit">Add Lead</button>
-
-</form>
-
+<!-- ===================== CREATE USER MODAL ===================== -->
+<div class="modal" id="userModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Create User</h3>
+      <button class="modal-close" onclick="closeModal('userModal')">&times;</button>
+    </div>
+    <form id="createUserForm" class="modal-form">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="newUsername" placeholder="username" required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="newPassword" placeholder="min 8 characters" required>
+      </div>
+      <div class="form-group">
+        <label>Role</label>
+        <select id="newRole">
+          <option value="">Select role</option>
+          <option value="manager">Manager</option>
+          <option value="marketer">Marketer</option>
+          <option value="staff">Staff</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-ghost" onclick="closeModal('userModal')">Cancel</button>
+        <button type="submit" class="btn-primary">Create User</button>
+      </div>
+    </form>
+  </div>
 </div>
 
-<table id="leadsTable">
-
-<thead>
-
-<tr>
-<th>Lead Type</th>
-<th>Location</th>
-<th>Contact</th>
-<th>Role</th>
-<th>Phone</th>
-<th>Email</th>
-<th>Visit</th>
-<th>Interest</th>
-<th>Services</th>
-<th>Notes</th>
-<th>Next</th>
-<th>Follow Up</th>
-<th>Submitted</th>
-<th>Actions</th>
-</tr>
-
-</thead>
-
-<tbody></tbody>
-
-</table>
-
-<div id="managerSection" style="display:none;margin-top:40px">
-
-<h2>User Management</h2>
-
-<button onclick="openUserModal()">Create User</button>
-
-<table id="usersTable">
-
-<thead>
-<tr>
-<th>ID</th>
-<th>Username</th>
-<th>Role</th>
-<th>Actions</th>
-</tr>
-</thead>
-
-<tbody></tbody>
-
-</table>
-
+<!-- ===================== LEAD DETAIL MODAL ===================== -->
+<div class="modal" id="leadDetailModal">
+  <div class="modal-content modal-lg">
+    <div class="modal-header">
+      <h3 id="leadDetailTitle">Lead Details</h3>
+      <button class="modal-close" onclick="closeModal('leadDetailModal')">&times;</button>
+    </div>
+    <div id="leadDetailBody" class="lead-detail-body"></div>
+  </div>
 </div>
 
-<div id="userModal" class="modal">
-
-<div class="modal-content">
-
-<span class="close" onclick="closeUserModal()">&times;</span>
-
-<h3>Create User</h3>
-
-<form id="createUserForm">
-
-<input type="text" id="newUsername" placeholder="Username" required>
-<input type="password" id="newPassword" placeholder="Password" required>
-
-<select id="newRole">
-<option value="">Role</option>
-<option value="manager">Manager</option>
-<option value="marketer">Marketer</option>
-<option value="staff">Staff</option>
-</select>
-
-<button type="submit">Create</button>
-
-</form>
-
-</div>
-
-</div>
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
 
 <script>
+// ===================== CONFIG =====================
+const API_BASE = window.location.hostname === "localhost"
+  ? "http://localhost:5000"
+  : "https://school-crm-sndl.onrender.com";
 
-document.addEventListener("DOMContentLoaded",function(){
+// ===================== STATE =====================
+const token = localStorage.getItem("jwtToken");
+if (!token) location.href = "login.html";
 
-const API_BASE = window.location.hostname==="localhost"
-? "http://localhost:5000"
-: "https://school-crm-sndl.onrender.com";
+let currentUserRole = "guest";
+let currentUserId = null;
+let allLeads = [];
+let filteredLeads = [];
 
-const token=localStorage.getItem("jwtToken");
-
-if(!token){location.href="login.html";}
-
-let currentUserRole="guest";
-let currentUserId=null;
-
-function parseJwt(t){
-try{
-return JSON.parse(atob(t.split('.')[1]));
-}catch{return null;}
+function parseJwt(t) {
+  try { return JSON.parse(atob(t.split('.')[1])); } catch { return null; }
 }
 
-const decoded=parseJwt(token);
-
-if(decoded){
-currentUserRole=decoded.role;
-currentUserId=decoded.id;
-}
-
-document.getElementById("userRole").textContent=currentUserRole;
-
-let allLeads=[];
-let filteredLeads=[];
-
-/* ================= FOLLOW UPS SYSTEM ================= */
-
-const followUpsCard = document.getElementById("followUpsCard");
-const followUpsPanel = document.getElementById("followUpsPanel");
-const followUpsList = document.getElementById("followUpsList");
-const followUpsCount = document.getElementById("followUpsCount");
-
-const followDateInput = document.getElementById("followUpFilterDate");
-const showFollowUpsBtn = document.getElementById("showFollowUpsBtn");
-const resetFollowUpsBtn = document.getElementById("resetFollowUpsBtn");
-
-function formatDate(date){
-if(!date) return "";
-return date.split("T")[0];
-}
-
-function renderFollowUps(leads){
-
-followUpsList.innerHTML="";
-
-if(!leads.length){
-followUpsList.innerHTML="<li>No follow-ups found</li>";
-return;
-}
-
-leads.forEach(l=>{
-
-const phone=(l.phone||"").replace(/\D/g,"");
-
-const li=document.createElement("li");
-
-li.innerHTML=`
-<strong>${l.contact_name||"Unknown"}</strong><br>
-${l.location||""}<br><br>
-
-<a href="https://wa.me/${phone}" target="_blank">
-<button>WhatsApp</button>
-</a>
-
-<a href="tel:${phone}">
-<button>Call</button>
-</a>
-`;
-
-followUpsList.appendChild(li);
-
-});
-
-}
-
-function loadTodayFollowUps(){
-
-const today=new Date().toISOString().split("T")[0];
-
-const todaysLeads=allLeads.filter(
-l=>formatDate(l.follow_up_date)===today
-);
-
-followUpsCount.textContent=todaysLeads.length;
-
-renderFollowUps(todaysLeads);
-
-}
-
-followUpsCard.addEventListener("click",()=>{
-
-followUpsPanel.style.display=
-followUpsPanel.style.display==="block"
-? "none"
-: "block";
-
-});
-
-showFollowUpsBtn.addEventListener("click",()=>{
-
-const selectedDate=followDateInput.value;
-
-if(!selectedDate){
-alert("Please select a date");
-return;
-}
-
-const filtered=allLeads.filter(
-l=>formatDate(l.follow_up_date)===selectedDate
-);
-
-renderFollowUps(filtered);
-
-followUpsPanel.style.display="block";
-
-});
-
-resetFollowUpsBtn.addEventListener("click",()=>{
-
-followDateInput.value="";
-
-loadTodayFollowUps();
-
-followUpsPanel.style.display="block";
-
-});
-
-/* ===================================================== */
-
-async function loadLeads(){
-
-const res=await fetch(`${API_BASE}/api/leads`,{
-headers:{Authorization:`Bearer ${token}`}
-});
-
-const data=await res.json();
-
-allLeads=data;
-
-populateMarketerDropdown();
-
-filteredLeads=currentUserRole==="marketer"
-?allLeads.filter(l=>l.submitted_by_id===currentUserId)
-:allLeads;
-
-renderTable(filteredLeads);
-loadTodayFollowUps();
-
-}
-
-function populateMarketerDropdown(){
-
-const dropdown=document.getElementById("filterMarketer");
-
-const marketers=[...new Set(allLeads.map(l=>l.submitted_by).filter(Boolean))];
-
-dropdown.innerHTML='<option value="">Filter by Marketer</option>';
-
-marketers.forEach(m=>{
-const opt=document.createElement("option");
-opt.value=m;
-opt.textContent=m;
-dropdown.appendChild(opt);
-});
-
-}
-
-function renderTable(leads){
-
-const tbody=document.querySelector("#leadsTable tbody");
-tbody.innerHTML="";
-
-leads.forEach(l=>{
-
-const tr=document.createElement("tr");
-
-tr.innerHTML=`
-
-<td>${l.lead_type||""}</td>
-<td>${l.location||""}</td>
-<td>${l.contact_name||""}</td>
-<td>${l.contact_role||""}</td>
-<td>${l.phone||""}</td>
-<td>${l.email||""}</td>
-<td>${l.visit_date||""}</td>
-<td>${l.interest_level||""}</td>
-<td>${l.services?l.services.join(", "):""}</td>
-<td>${l.notes||""}</td>
-<td>${l.next_action||""}</td>
-<td>${l.follow_up_date||""}</td>
-<td>${l.submitted_by||""}</td>
-
-<td>
-${currentUserRole==="manager"
-?`<button onclick="deleteLead(${l.id})">Delete</button>`
-:""}
-</td>
-
-`;
-
-tbody.appendChild(tr);
-
-});
-
-}
-
-window.deleteLead=async(id)=>{
-
-if(!confirm("Delete lead?"))return;
-
-await fetch(`${API_BASE}/api/leads/${id}`,{
-method:"DELETE",
-headers:{Authorization:`Bearer ${token}`}
-});
-
-loadLeads();
-
-}
-
-window.filterLeads = function() {
-    const search = document.getElementById("searchName").value.toLowerCase();
-    const interest = document.getElementById("filterInterest").value;
-    const action = document.getElementById("filterAction").value;
-    const visitDate = document.getElementById("filterVisitDate").value;
-    const marketer = document.getElementById("filterMarketer").value;
-
-    filteredLeads = allLeads.filter(l => {
-        // Restrict marketer to only their submitted leads
-        if (currentUserRole === "marketer" && l.submitted_by_id !== currentUserId) return false;
-
-        // Normalize visit date (works for "YYYY-MM-DDTHH:mm:ss" or "YYYY-MM-DD HH:mm:ss")
-        const leadVisitDate = l.visit_date ? l.visit_date.split("T")[0].split(" ")[0] : "";
-
-        // Search by lead type OR contact name
-        const matchesSearch =
-            (l.lead_type || "").toLowerCase().includes(search) ||
-            (l.contact_name || "").toLowerCase().includes(search);
-
-        // Filter by interest level
-        const matchesInterest = !interest || l.interest_level === interest;
-
-        // Filter by next action
-        const matchesAction = !action || l.next_action === action;
-
-        // Filter by visit date
-        const matchesVisitDate = !visitDate || leadVisitDate === visitDate;
-
-        // Filter by marketer
-        const matchesMarketer = !marketer || l.submitted_by === marketer;
-
-        // Combine all conditions with AND
-        return matchesSearch && matchesInterest && matchesAction && matchesVisitDate && matchesMarketer;
+const decoded = parseJwt(token);
+if (decoded) { currentUserRole = decoded.role; currentUserId = decoded.id; }
+
+// ===================== INIT =====================
+document.addEventListener("DOMContentLoaded", () => {
+  // Set user info in sidebar
+  document.getElementById("sidebarUsername").textContent = decoded?.username || currentUserRole;
+  document.getElementById("sidebarAvatar").textContent = (decoded?.username || "?")[0].toUpperCase();
+  document.getElementById("sidebarRole").textContent = currentUserRole;
+
+  if (currentUserRole === "manager") {
+    document.getElementById("adminNavItem").style.display = "flex";
+  }
+
+  // Lead type → school type toggle in modal
+  document.getElementById("lead_type").addEventListener("change", function() {
+    document.getElementById("schoolTypeGroup").style.display = this.value === "School" ? "block" : "none";
+  });
+  document.getElementById("schoolTypeGroup").style.display = "none";
+
+  // Theme toggle
+  document.getElementById("themeToggle").addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+    localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+  });
+  if (localStorage.getItem("theme") === "dark") document.body.classList.add("dark");
+
+  // Nav links
+  document.querySelectorAll(".nav-item").forEach(item => {
+    item.addEventListener("click", e => {
+      e.preventDefault();
+      const view = item.dataset.view;
+      switchView(view);
+      document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+      item.classList.add("active");
     });
+  });
 
-    renderTable(filteredLeads);
+  // Follow-up date default to today
+  document.getElementById("followUpFilterDate").value = new Date().toISOString().split("T")[0];
+
+  loadLeads();
+  if (currentUserRole === "manager") loadUsers();
+});
+
+// ===================== VIEW SWITCHER =====================
+function switchView(view) {
+  const views = ["dashboard", "leads", "admin", "pipeline", "tasks", "whatsapp", "marketers", "reports", "settings"];
+  views.forEach(v => {
+    const el = document.getElementById(`view${v.charAt(0).toUpperCase() + v.slice(1)}`);
+    if (el) el.style.display = "none";
+  });
+  const target = document.getElementById(`view${view.charAt(0).toUpperCase() + view.slice(1)}`);
+  if (target) target.style.display = "block";
+
+  const titles = { dashboard: "Dashboard", leads: "All Leads", admin: "Admin", pipeline: "Pipeline", tasks: "Tasks", whatsapp: "WhatsApp / SMS", marketers: "Marketers", reports: "Reports", settings: "Settings" };
+  document.getElementById("pageTitle").textContent = titles[view] || view;
+
+  // sync nav highlight
+  document.querySelectorAll(".nav-item").forEach(n => {
+    n.classList.toggle("active", n.dataset.view === view);
+  });
+}
+
+window.switchView = switchView;
+
+// ===================== LEADS LOGIC =====================
+async function loadLeads() {
+  try {
+    const res = await fetch(`${API_BASE}/api/leads`, { headers: { Authorization: `Bearer ${token}` } });
+    const data = await res.json();
+    allLeads = data;
+    populateFilters();
+    applyFilter();
+    updateKPIs();
+    loadFollowUps();
+    renderActivityPanel();
+  } catch (e) {
+    showToast("Failed to load leads", "error");
+  }
+}
+
+function populateFilters() {
+  const marketers = [...new Set(allLeads.map(l => l.submitted_by).filter(Boolean))];
+  ["filterMarketer", "filterMarketerLeads"].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const val = el.value;
+    el.innerHTML = '<option value="">All marketers</option>';
+    marketers.forEach(m => {
+      const o = document.createElement("option");
+      o.value = m; o.textContent = m;
+      el.appendChild(o);
+    });
+    el.value = val;
+  });
+
+  const locations = [...new Set(allLeads.map(l => l.location).filter(Boolean))];
+  const locEl = document.getElementById("filterLocation");
+  if (locEl) {
+    const val = locEl.value;
+    locEl.innerHTML = '<option value="">All counties</option>';
+    locations.sort().forEach(loc => {
+      const o = document.createElement("option");
+      o.value = loc; o.textContent = loc;
+      locEl.appendChild(o);
+    });
+    locEl.value = val;
+  }
+}
+
+function getFilterValues() {
+  return {
+    search: (document.getElementById("searchName")?.value || document.getElementById("searchNameLeads")?.value || "").toLowerCase(),
+    interest: document.getElementById("filterInterest")?.value || document.getElementById("filterInterestLeads")?.value || "",
+    action: document.getElementById("filterAction")?.value || document.getElementById("filterActionLeads")?.value || "",
+    visitDate: document.getElementById("filterVisitDate")?.value || "",
+    marketer: document.getElementById("filterMarketer")?.value || document.getElementById("filterMarketerLeads")?.value || "",
+    location: document.getElementById("filterLocation")?.value || ""
+  };
+}
+
+function applyFilter() {
+  const f = getFilterValues();
+  filteredLeads = allLeads.filter(l => {
+    if (currentUserRole === "marketer" && l.submitted_by_id !== currentUserId) return false;
+    const visitDate = l.visit_date ? l.visit_date.split("T")[0].split(" ")[0] : "";
+    return (
+      (!f.search || (l.lead_type || "").toLowerCase().includes(f.search) || (l.contact_name || "").toLowerCase().includes(f.search) || (l.location || "").toLowerCase().includes(f.search)) &&
+      (!f.interest || l.interest_level === f.interest) &&
+      (!f.action || l.next_action === f.action) &&
+      (!f.visitDate || visitDate === f.visitDate) &&
+      (!f.marketer || l.submitted_by === f.marketer) &&
+      (!f.location || l.location === f.location)
+    );
+  });
+  renderDashboardTable(filteredLeads.slice(0, 8));
+  renderFullTable(filteredLeads);
+}
+
+window.filterLeads = applyFilter;
+
+window.resetFilters = function() {
+  ["searchName","searchNameLeads","filterInterest","filterInterestLeads","filterAction","filterActionLeads","filterVisitDate","filterMarketer","filterMarketerLeads","filterLocation"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+  applyFilter();
 };
 
-window.resetFilters=function(){
-loadLeads();
+function renderDashboardTable(leads) {
+  const tbody = document.getElementById("leadsTableBody");
+  const empty = document.getElementById("emptyLeads");
+  tbody.innerHTML = "";
+  if (!leads.length) { empty.style.display = "flex"; return; }
+  empty.style.display = "none";
+  leads.forEach(l => {
+    const tr = document.createElement("tr");
+    tr.style.cursor = "pointer";
+    tr.onclick = () => openLeadDetail(l);
+    tr.innerHTML = `
+      <td><div class="lead-name">${l.contact_name || "–"}</div><div class="lead-meta">${l.lead_type || ""}</div></td>
+      <td>${l.location || "–"}</td>
+      <td><div class="lead-name">${l.contact_name || "–"}</div><div class="lead-meta">${l.phone || ""}</div></td>
+      <td>${renderServiceBadges(l.services)}</td>
+      <td>${renderStatusBadge(l.interest_level)}</td>
+      <td class="followup-date ${isOverdue(l.follow_up_date) ? 'overdue' : ''}">${formatDateShort(l.follow_up_date)}</td>
+      <td><div class="lead-meta">${l.submitted_by || "–"}</div></td>
+      <td>
+        <div class="actions-cell">
+          ${l.phone ? `<a href="https://wa.me/${(l.phone||"").replace(/\D/g,"")}" target="_blank" class="action-icon wa" title="WhatsApp">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          </a>` : ""}
+          <button class="action-icon view" onclick="event.stopPropagation(); openLeadDetail(${JSON.stringify(l).replace(/"/g,'&quot;')})" title="View">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+          ${currentUserRole === "manager" ? `<button class="action-icon del" onclick="event.stopPropagation(); deleteLead(${l.id})" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>` : ""}
+        </div>
+      </td>`;
+    tbody.appendChild(tr);
+  });
 }
 
-window.exportCSV=function(){
-
-if(!filteredLeads.length){alert("No leads");return;}
-
-let csv="Lead Type,Location,Contact\n";
-
-filteredLeads.forEach(l=>{
-csv+=`${l.lead_type},${l.location},${l.contact_name}\n`;
-});
-
-const link=document.createElement("a");
-
-link.href="data:text/csv;charset=utf-8,"+encodeURI(csv);
-
-link.download="leads.csv";
-
-link.click();
-
+function renderFullTable(leads) {
+  const tbody = document.getElementById("leadsTableFullBody");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+  leads.forEach(l => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><div class="lead-name">${l.contact_name || "–"}</div><div class="lead-meta">${l.lead_type || ""}</div></td>
+      <td>${l.location || "–"}</td>
+      <td>${l.contact_name || "–"}</td>
+      <td>${l.phone || "–"}</td>
+      <td>${l.email || "–"}</td>
+      <td>${formatDateShort(l.visit_date)}</td>
+      <td>${renderServiceBadges(l.services)}</td>
+      <td>${renderStatusBadge(l.interest_level)}</td>
+      <td>${l.next_action || "–"}</td>
+      <td class="${isOverdue(l.follow_up_date) ? 'overdue' : ''}">${formatDateShort(l.follow_up_date)}</td>
+      <td>${l.submitted_by || "–"}</td>
+      <td>
+        <div class="actions-cell">
+          ${currentUserRole === "manager" ? `<button class="action-icon del" onclick="deleteLead(${l.id})" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>` : ""}
+        </div>
+      </td>`;
+    tbody.appendChild(tr);
+  });
 }
 
-document.getElementById("addLeadForm").addEventListener("submit",async e=>{
+// ===================== KPIs =====================
+function updateKPIs() {
+  const leads = currentUserRole === "marketer" ? allLeads.filter(l => l.submitted_by_id === currentUserId) : allLeads;
+  document.getElementById("kpiTotal").textContent = leads.length.toLocaleString();
+  document.getElementById("kpiTotalDelta").textContent = "+12% this week";
 
-e.preventDefault();
+  const today = new Date().toISOString().split("T")[0];
+  const followups = leads.filter(l => l.follow_up_date && l.follow_up_date.split("T")[0] >= today);
+  document.getElementById("kpiFollowups").textContent = followups.length;
+  const urgent = leads.filter(l => l.follow_up_date && l.follow_up_date.split("T")[0] === today).length;
+  document.getElementById("kpiFollowupsDelta").textContent = `${urgent} urgent`;
 
-const form=e.target;
-const formData=new FormData(form);
+  const interested = leads.filter(l => l.interest_level === "Interested").length;
+  const rate = leads.length ? Math.round((interested / leads.length) * 100) : 0;
+  document.getElementById("kpiConversion").textContent = `${rate}%`;
 
-const services=[...form.querySelectorAll('input[name="services"]:checked')].map(c=>c.value);
-
-services.forEach(s=>formData.append("services",s));
-
-await fetch(`${API_BASE}/api/leads`,{
-method:"POST",
-headers:{Authorization:`Bearer ${token}`},
-body:formData
-});
-
-form.reset();
-loadLeads();
-
-});
-
-window.toggleAddLeadForm=function(){
-
-const form=document.getElementById("addLeadSection");
-
-form.style.display=form.style.display==="none"?"block":"none";
-
+  const locCount = {};
+  leads.forEach(l => { if (l.location) locCount[l.location] = (locCount[l.location] || 0) + 1; });
+  const top = Object.entries(locCount).sort((a,b) => b[1]-a[1])[0];
+  document.getElementById("kpiTopCounty").textContent = top ? top[0] : "–";
+  document.getElementById("kpiTopCountyCount").textContent = top ? `${top[1]} leads` : "";
 }
 
-async function loadUsers(){
+// ===================== FOLLOW-UPS PANEL =====================
+function loadFollowUps() {
+  const dateVal = document.getElementById("followUpFilterDate").value || new Date().toISOString().split("T")[0];
+  filterFollowUps(dateVal);
 
-const res=await fetch(`${API_BASE}/api/users`,{
-headers:{Authorization:`Bearer ${token}`}
-});
-
-const users=await res.json();
-
-const tbody=document.querySelector("#usersTable tbody");
-tbody.innerHTML="";
-
-users.forEach(u=>{
-
-const tr=document.createElement("tr");
-
-tr.innerHTML=`
-<td>${u.id}</td>
-<td>${u.username}</td>
-<td>${u.role}</td>
-<td><button onclick="deleteUser(${u.id})">Delete</button></td>
-`;
-
-tbody.appendChild(tr);
-
-});
-
+  const dot = document.getElementById("notifDot");
+  const today = new Date().toISOString().split("T")[0];
+  const todayCount = allLeads.filter(l => l.follow_up_date && l.follow_up_date.split("T")[0] === today).length;
+  dot.style.display = todayCount > 0 ? "block" : "none";
 }
 
-window.deleteUser=async(id)=>{
+window.filterFollowUps = function(date) {
+  const dateVal = date || document.getElementById("followUpFilterDate").value;
+  const list = document.getElementById("followUpsList");
+  const empty = document.getElementById("followupsEmpty");
+  const filtered = allLeads.filter(l => l.follow_up_date && l.follow_up_date.split("T")[0] === dateVal);
+  list.innerHTML = "";
+  if (!filtered.length) { empty.style.display = "block"; return; }
+  empty.style.display = "none";
+  filtered.forEach(l => {
+    const phone = (l.phone || "").replace(/\D/g, "");
+    const li = document.createElement("li");
+    li.className = "followup-item";
+    li.innerHTML = `
+      <div class="followup-dot followup-dot--${getStatusClass(l.interest_level)}"></div>
+      <div class="followup-info">
+        <div class="followup-name">${l.contact_name || l.lead_type || "Lead"} — ${l.next_action || "Follow up"}</div>
+        <div class="followup-meta">Scheduled by ${l.submitted_by || "–"}</div>
+      </div>
+      <div class="followup-actions">
+        ${phone ? `<a href="https://wa.me/${phone}" target="_blank" class="fu-btn fu-btn--wa">WA</a>` : ""}
+        ${phone ? `<a href="tel:${phone}" class="fu-btn fu-btn--call">📞</a>` : ""}
+      </div>`;
+    list.appendChild(li);
+  });
+};
 
-if(!confirm("Delete user?"))return;
+window.resetFollowUps = function() {
+  document.getElementById("followUpFilterDate").value = new Date().toISOString().split("T")[0];
+  filterFollowUps();
+};
 
-await fetch(`${API_BASE}/api/users/${id}`,{
-method:"DELETE",
-headers:{Authorization:`Bearer ${token}`}
+// ===================== ACTIVITY PANEL =====================
+function renderActivityPanel() {
+  const leads = [...allLeads].sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5);
+  const marketers = {};
+  allLeads.forEach(l => { if (l.submitted_by) marketers[l.submitted_by] = (marketers[l.submitted_by] || 0) + 1; });
+  const sorted = Object.entries(marketers).sort((a,b) => b[1]-a[1]);
+
+  if (sorted.length) {
+    document.getElementById("activitySummary").textContent =
+      `${sorted[0][0]} has submitted the most leads (${sorted[0][1]}). ${sorted.length > 1 ? sorted[1][0] + " is close behind.' " : ""}`;
+  }
+
+  const list = document.getElementById("activityList");
+  list.innerHTML = "";
+  leads.forEach(l => {
+    const li = document.createElement("li");
+    li.className = "activity-item";
+    li.innerHTML = `
+      <div class="activity-avatar">${(l.submitted_by || "?")[0].toUpperCase()}</div>
+      <div class="activity-text">
+        <span class="activity-who">${l.submitted_by || "Unknown"}</span> submitted a new lead —
+        <span class="activity-what">${l.contact_name || l.lead_type || "Lead"}</span>
+      </div>`;
+    list.appendChild(li);
+  });
+}
+
+// ===================== LEAD DETAIL MODAL =====================
+window.openLeadDetail = function(l) {
+  document.getElementById("leadDetailTitle").textContent = l.contact_name || l.lead_type || "Lead";
+  const phone = (l.phone || "").replace(/\D/g, "");
+  document.getElementById("leadDetailBody").innerHTML = `
+    <div class="detail-grid">
+      <div class="detail-row"><span class="detail-label">Lead Type</span><span>${l.lead_type || "–"}</span></div>
+      <div class="detail-row"><span class="detail-label">Location</span><span>${l.location || "–"}</span></div>
+      <div class="detail-row"><span class="detail-label">Contact</span><span>${l.contact_name || "–"}</span></div>
+      <div class="detail-row"><span class="detail-label">Role</span><span>${l.contact_role || "–"}</span></div>
+      <div class="detail-row"><span class="detail-label">Phone</span><span>${l.phone || "–"} ${phone ? `<a href="https://wa.me/${phone}" target="_blank" class="wa-link">WhatsApp</a>` : ""}</span></div>
+      <div class="detail-row"><span class="detail-label">Email</span><span>${l.email || "–"}</span></div>
+      <div class="detail-row"><span class="detail-label">Visit Date</span><span>${formatDateShort(l.visit_date)}</span></div>
+      <div class="detail-row"><span class="detail-label">Interest</span><span>${renderStatusBadge(l.interest_level)}</span></div>
+      <div class="detail-row"><span class="detail-label">Services</span><span>${renderServiceBadges(l.services)}</span></div>
+      <div class="detail-row"><span class="detail-label">Next Action</span><span>${l.next_action || "–"}</span></div>
+      <div class="detail-row"><span class="detail-label">Follow-up</span><span>${formatDateShort(l.follow_up_date)}</span></div>
+      <div class="detail-row"><span class="detail-label">Submitted by</span><span>${l.submitted_by || "–"}</span></div>
+      <div class="detail-row full"><span class="detail-label">Notes</span><p class="detail-notes">${l.notes || "No notes"}</p></div>
+    </div>`;
+  document.getElementById("leadDetailModal").style.display = "flex";
+};
+
+// ===================== ADD LEAD =====================
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("addLeadForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+    const services = [...form.querySelectorAll('input[name="services"]:checked')].map(c => c.value);
+    services.forEach(s => formData.append("services", s));
+    try {
+      const res = await fetch(`${API_BASE}/api/leads`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData
+      });
+      if (!res.ok) throw new Error("Failed");
+      showToast("Lead saved successfully ✓");
+      closeModal("newLeadModal");
+      form.reset();
+      loadLeads();
+    } catch { showToast("Error saving lead", "error"); }
+  });
+
+  document.getElementById("createUserForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const username = document.getElementById("newUsername").value;
+    const password = document.getElementById("newPassword").value;
+    const role = document.getElementById("newRole").value;
+    try {
+      await fetch(`${API_BASE}/api/users`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ username, password, role })
+      });
+      showToast("User created ✓");
+      closeModal("userModal");
+      e.target.reset();
+      loadUsers();
+    } catch { showToast("Error creating user", "error"); }
+  });
 });
 
-loadUsers();
-
+// ===================== USERS =====================
+async function loadUsers() {
+  const res = await fetch(`${API_BASE}/api/users`, { headers: { Authorization: `Bearer ${token}` } });
+  const users = await res.json();
+  const tbody = document.getElementById("usersTableBody");
+  tbody.innerHTML = "";
+  users.forEach(u => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${u.id}</td><td>${u.username}</td><td><span class="role-chip role-${u.role}">${u.role}</span></td><td>${formatDateShort(u.created_at)}</td><td><button class="action-icon del" onclick="deleteUser(${u.id})"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button></td>`;
+    tbody.appendChild(tr);
+  });
 }
 
-window.openUserModal=function(){
-document.getElementById("userModal").style.display="block";
-}
+window.deleteUser = async id => {
+  if (!confirm("Delete this user?")) return;
+  await fetch(`${API_BASE}/api/users/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+  loadUsers();
+};
 
-window.closeUserModal=function(){
-document.getElementById("userModal").style.display="none";
-}
+// ===================== DELETE LEAD =====================
+window.deleteLead = async id => {
+  if (!confirm("Delete this lead?")) return;
+  await fetch(`${API_BASE}/api/leads/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+  showToast("Lead deleted");
+  loadLeads();
+};
 
-document.getElementById("createUserForm").addEventListener("submit",async function(e){
+// ===================== EXPORT =====================
+window.exportCSV = function() {
+  if (!filteredLeads.length) { showToast("No leads to export", "error"); return; }
+  const headers = ["Lead Type","Location","Contact","Phone","Email","Visit Date","Interest","Services","Next Action","Follow-up","Submitted By"];
+  const rows = filteredLeads.map(l => [l.lead_type, l.location, l.contact_name, l.phone, l.email, formatDateShort(l.visit_date), l.interest_level, (l.services||[]).join("; "), l.next_action, formatDateShort(l.follow_up_date), l.submitted_by].map(v => `"${(v||"").replace(/"/g,'""')}"`).join(","));
+  const csv = [headers.join(","), ...rows].join("\n");
+  const a = document.createElement("a");
+  a.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+  a.download = `jendie-leads-${new Date().toISOString().split("T")[0]}.csv`;
+  a.click();
+  showToast("Export ready ✓");
+};
 
-e.preventDefault();
+// ===================== MODALS =====================
+window.openNewLeadModal = () => document.getElementById("newLeadModal").style.display = "flex";
+window.openUserModal = () => document.getElementById("userModal").style.display = "flex";
+window.closeModal = id => document.getElementById(id).style.display = "none";
 
-const username=document.getElementById("newUsername").value;
-const password=document.getElementById("newPassword").value;
-const role=document.getElementById("newRole").value;
-
-await fetch(`${API_BASE}/api/users`,{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json",
-Authorization:`Bearer ${token}`
-},
-
-body:JSON.stringify({username,password,role})
-
+document.addEventListener("click", e => {
+  if (e.target.classList.contains("modal")) closeModal(e.target.id);
 });
 
-closeUserModal();
-this.reset();
-loadUsers();
+// ===================== SIDEBAR TOGGLE =====================
+window.toggleSidebar = function() { document.getElementById("sidebar").classList.toggle("collapsed"); };
 
-});
+// ===================== LOGOUT =====================
+window.logout = function() { localStorage.removeItem("jwtToken"); location.href = "login.html"; };
 
-window.logout=function(){
-localStorage.removeItem("jwtToken");
-location.href="login.html";
+// ===================== HELPERS =====================
+function renderStatusBadge(status) {
+  const map = { "Interested": "badge--green", "Needs Follow-up": "badge--amber", "Not Interested": "badge--red" };
+  return `<span class="badge ${map[status] || 'badge--grey'}">${status || "–"}</span>`;
 }
 
-if(currentUserRole==="manager"){
-
-document.getElementById("managerSection").style.display="block";
-document.getElementById("addLeadButtonContainer").style.display="block";
-
-loadUsers();
-
+function renderServiceBadges(services) {
+  if (!services || !services.length) return '<span class="service-none">–</span>';
+  return services.slice(0,3).map(s => `<span class="service-chip">${s}</span>`).join("") + (services.length > 3 ? `<span class="service-chip service-chip--more">+${services.length-3}</span>` : "");
 }
 
-loadLeads();
+function formatDateShort(d) {
+  if (!d) return "–";
+  const date = new Date(d);
+  if (isNaN(date)) return d;
+  return date.toLocaleDateString("en-KE", { day: "numeric", month: "short", year: "numeric" });
+}
 
-});
+function isOverdue(d) {
+  if (!d) return false;
+  return new Date(d) < new Date(new Date().setHours(0,0,0,0));
+}
 
+function getStatusClass(status) {
+  if (status === "Interested") return "green";
+  if (status === "Needs Follow-up") return "amber";
+  return "red";
+}
+
+function showToast(msg, type = "success") {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = `toast toast--${type} toast--show`;
+  setTimeout(() => t.className = "toast", 3000);
+}
 </script>
-
-<footer>
-
-<p>© 2026 School CRM | Powered by Jendie Automobiles Ltd</p>
-<p>Contact: jendietrackmykid@gmail.com | +254 723 77 52 89</p>
-
-</footer>
-
 </body>
 </html>
