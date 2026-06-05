@@ -12,8 +12,7 @@ const app = express();
 // CORS — lock to your frontend origins
 // -------------------------
 const allowedOrigins = [
-  "https://jendieconnect.vercel.app",
-  'https://jendie-marketing-crm.onrender.com',
+  'https://school-crm-indol.vercel.app',  // Vercel frontend
   'http://localhost:5000',
   'http://localhost:3000'
 ];
