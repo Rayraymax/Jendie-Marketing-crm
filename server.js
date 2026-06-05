@@ -30,7 +30,7 @@ app.use(cors({
 }));
 
 // Handle preflight requests for all routes
-app.options('(.*)', cors());
+app.options('*', cors());
 
 // -------------------------
 // Body parsing (only once)
