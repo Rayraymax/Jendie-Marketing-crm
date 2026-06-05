@@ -35,7 +35,10 @@
           <div class="password-wrap">
             <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" required>
             <button type="button" class="eye-toggle" id="eyeToggle" tabindex="-1">
-              <svg id="eyeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg id="eyeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
             </button>
           </div>
         </div>
@@ -50,68 +53,73 @@
   </div>
 
   <script>
-    const API_BASE = window.location.hostname === "localhost"
-      ? "http://localhost:5000"
-      : "https://school-crm-sndl.onrender.com";
+    // Always points to the Render backend regardless of where the frontend is hosted
+    const API_BASE = 'https://school-crm-sndl.onrender.com';
 
-    const form = document.getElementById("loginForm");
-    const btn = document.getElementById("loginBtn");
-    const btnText = document.getElementById("loginBtnText");
-    const btnSpinner = document.getElementById("loginBtnSpinner");
-    const errorBanner = document.getElementById("errorBanner");
-    const eyeToggle = document.getElementById("eyeToggle");
-    const passwordInput = document.getElementById("password");
+    const form       = document.getElementById('loginForm');
+    const btn        = document.getElementById('loginBtn');
+    const btnText    = document.getElementById('loginBtnText');
+    const btnSpinner = document.getElementById('loginBtnSpinner');
+    const errorBanner = document.getElementById('errorBanner');
+    const eyeToggle  = document.getElementById('eyeToggle');
+    const passwordInput = document.getElementById('password');
 
-    eyeToggle.addEventListener("click", () => {
-      const isPass = passwordInput.type === "password";
-      passwordInput.type = isPass ? "text" : "password";
-      document.getElementById("eyeIcon").innerHTML = isPass
+    // Show/hide password
+    eyeToggle.addEventListener('click', () => {
+      const isPass = passwordInput.type === 'password';
+      passwordInput.type = isPass ? 'text' : 'password';
+      document.getElementById('eyeIcon').innerHTML = isPass
         ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
         : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
     });
 
     function showError(msg) {
       errorBanner.textContent = msg;
-      errorBanner.style.display = "block";
+      errorBanner.style.display = 'block';
     }
 
-    function hideError() { errorBanner.style.display = "none"; }
+    function hideError() {
+      errorBanner.style.display = 'none';
+    }
 
     function setLoading(on) {
       btn.disabled = on;
-      btnText.style.display = on ? "none" : "inline";
-      btnSpinner.style.display = on ? "inline-block" : "none";
+      btnText.style.display = on ? 'none' : 'inline';
+      btnSpinner.style.display = on ? 'inline-block' : 'none';
     }
 
-    form.addEventListener("submit", async e => {
+    form.addEventListener('submit', async e => {
       e.preventDefault();
       hideError();
-      const username = document.getElementById("username").value.trim();
+
+      const username = document.getElementById('username').value.trim();
       const password = passwordInput.value;
-      if (!username || !password) { showError("Please enter your username and password."); return; }
+
+      if (!username || !password) {
+        showError('Please enter your username and password.');
+        return;
+      }
 
       setLoading(true);
       try {
         const res = await fetch(`${API_BASE}/api/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
         });
 
         if (res.ok) {
           const data = await res.json();
-          localStorage.setItem("jwtToken", data.token);
-          if (data.role === "marketer") {
-            window.location.href = "index.html";
-          } else {
-            window.location.href = "dashboard.html";
-          }
+          localStorage.setItem('jwtToken', data.token);
+          // Redirect based on role
+          window.location.href = data.role === 'marketer' ? 'index.html' : 'dashboard.html';
         } else {
           const err = await res.json().catch(() => ({}));
-          showError(err.message || "Incorrect username or password. Please try again.");
+          showError(err.message || err.error || 'Incorrect username or password. Please try again.');
         }
-      } catch {
-        showError("Unable to connect. Check your internet connection.");
+      } catch (err) {
+        console.error(err);
+        showError('Unable to connect to server. Please try again.');
       } finally {
         setLoading(false);
       }

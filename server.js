@@ -8,20 +8,37 @@ const usersRoutes = require('./routes/users');
 
 const app = express();
 
-app.use(express.json());
+// -------------------------
+// CORS — lock to your frontend origins
+// -------------------------
+const allowedOrigins = [
+  'https://school-crm-indol.vercel.app',  // Vercel frontend
+  'http://localhost:5000',
+  'http://localhost:3000'
+];
 
-// -------------------------
-// Middleware
-// -------------------------
 app.use(cors({
-  origin: '*', // allow all origins or specify frontend URL
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error(`CORS blocked: ${origin}`));
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
+
+// Handle preflight requests for all routes
+app.options('*', cors());
+
+// -------------------------
+// Body parsing (only once)
+// -------------------------
 app.use(express.json());
 
 // -------------------------
-// Serve frontend files
+// Serve frontend static files
 // -------------------------
 app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
@@ -37,22 +54,33 @@ app.get('/login.html', (req, res) => {
 
 // -------------------------
 // Auth middleware
+// Returns 401 JSON for API calls, redirects for page requests
 // -------------------------
 function ensureAuthenticated(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1] || null;
-  if (!token) return res.sendFile(path.join(__dirname, 'public', 'login.html'));
+
+  if (!token) {
+    // If it's an API call return JSON 401, otherwise redirect to login
+    if (req.path.startsWith('/api/')) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+    return res.redirect('/login.html');
+  }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // attach user info
+    req.user = decoded;
     next();
   } catch (err) {
-    return res.sendFile(path.join(__dirname, 'public', 'login.html'));
+    if (req.path.startsWith('/api/')) {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+    return res.redirect('/login.html');
   }
 }
 
 // -------------------------
-// Protected routes
+// Protected page routes
 // -------------------------
 app.get('/dashboard.html', ensureAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
@@ -68,6 +96,17 @@ app.get('/index.html', ensureAuthenticated, (req, res) => {
 app.use('/api/leads', leadsRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
+
+// -------------------------
+// Global error handler
+// -------------------------
+app.use((err, req, res, next) => {
+  if (err.message && err.message.startsWith('CORS blocked')) {
+    return res.status(403).json({ error: err.message });
+  }
+  console.error(err.stack);
+  res.status(500).json({ error: 'Internal server error' });
+});
 
 // -------------------------
 // Start server
