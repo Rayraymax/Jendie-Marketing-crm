@@ -4,8 +4,8 @@ const pool = require('../db');
 const authMiddleware = require('../middleware/authMiddleware');
 const multer = require('multer');
 
-// Configure multer for file uploads
-const upload = multer({ dest: 'uploads/' });
+// ✅ Use memoryStorage — Vercel filesystem is read-only
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Utility: role-based authorization
 function authorizeRoles(...allowedRoles) {
@@ -47,7 +47,14 @@ router.post(
           ? services
           : [services]
         : [];
-      const imagePath = req.file ? req.file.filename : null;
+
+      // ✅ Convert file buffer to base64 string instead of saving to disk
+      let imagePath = null;
+      if (req.file) {
+        const base64 = req.file.buffer.toString('base64');
+        const mimeType = req.file.mimetype;
+        imagePath = `data:${mimeType};base64,${base64}`;
+      }
 
       const result = await pool.query(
         `INSERT INTO school_leads
