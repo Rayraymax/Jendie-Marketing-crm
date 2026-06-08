@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JendieCRM – Dashboard</title>
+<title>JendieConnect - Dashboard</title>
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -19,8 +19,8 @@
       <div class="brand-initials">J</div>
     </div>
     <div class="brand-text">
-      <span class="brand-name">JendieCRM</span>
-      <span class="brand-sub">Driving connections, powering growth · Kenya</span>
+      <span class="brand-name">JendieConnect</span>
+      <span class="brand-sub">Smart CRM for smarter fleets</span>
     </div>
   </div>
 
@@ -93,7 +93,7 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
       <div class="breadcrumb">
-        <span class="breadcrumb-app">JendieCRM</span>
+        <span class="breadcrumb-app">JendieConnect</span>
         <span class="breadcrumb-sep">/</span>
         <span class="breadcrumb-page" id="pageTitle">Dashboard</span>
       </div>
@@ -132,7 +132,7 @@
     <div class="page-header">
       <div>
         <h1 class="page-title">Marketing Dashboard</h1>
-        <p class="page-subtitle">Real-time view of school leads, follow-ups, and team activity.</p>
+        <p class="page-subtitle">Smart CRM for smarter fleets: leads, follow-ups, and team activity in one view.</p>
       </div>
       <div class="page-actions">
         <button class="btn-ghost" onclick="exportCSV()">
@@ -362,30 +362,135 @@
     </div>
   </main>
 
-  <!-- Placeholder views -->
+  <!-- ===================== PIPELINE VIEW ===================== -->
   <main class="content" id="viewPipeline" style="display:none">
-    <div class="page-header"><h1 class="page-title">Pipeline</h1></div>
-    <div class="coming-soon"><div class="cs-icon">🚀</div><h2>Pipeline / Kanban view coming soon</h2><p>Drag leads between stages: New → Contacted → Proposal → Won / Lost</p></div>
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Pipeline</h1>
+        <p class="page-subtitle">Drag leads through New, Contacted, Proposal, Won, and Lost.</p>
+      </div>
+      <button class="btn-primary" onclick="openNewLeadModal()">+ New Lead</button>
+    </div>
+    <div class="kanban-board" id="pipelineBoard"></div>
   </main>
+
+  <!-- ===================== TASKS VIEW ===================== -->
   <main class="content" id="viewTasks" style="display:none">
-    <div class="page-header"><h1 class="page-title">Tasks</h1></div>
-    <div class="coming-soon"><div class="cs-icon">✅</div><h2>Tasks & reminders coming soon</h2></div>
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Tasks</h1>
+        <p class="page-subtitle">Follow-up reminders generated from lead next actions and due dates.</p>
+      </div>
+      <button class="btn-primary" onclick="openNewLeadModal()">+ Schedule Follow-up</button>
+    </div>
+    <div class="table-card" style="margin-top:0">
+      <div class="filters-row">
+        <select id="taskStatusFilter" onchange="renderTasks()">
+          <option value="">All tasks</option>
+          <option value="overdue">Overdue</option>
+          <option value="today">Due today</option>
+          <option value="upcoming">Upcoming</option>
+        </select>
+        <select id="taskMarketerFilter" onchange="renderTasks()">
+          <option value="">All marketers</option>
+        </select>
+      </div>
+      <div class="task-list" id="tasksList"></div>
+    </div>
   </main>
+
+  <!-- ===================== WHATSAPP/SMS VIEW ===================== -->
   <main class="content" id="viewWhatsapp" style="display:none">
-    <div class="page-header"><h1 class="page-title">WhatsApp / SMS</h1></div>
-    <div class="coming-soon"><div class="cs-icon">💬</div><h2>WhatsApp & SMS integration coming soon</h2></div>
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">WhatsApp / SMS</h1>
+        <p class="page-subtitle">Outreach templates and quick-send links for selected lead segments.</p>
+      </div>
+    </div>
+    <div class="engage-grid">
+      <div class="panel-card">
+        <h3 class="panel-title">Templates</h3>
+        <div class="template-list" id="templateList"></div>
+      </div>
+      <div class="panel-card">
+        <h3 class="panel-title">Ready Contacts</h3>
+        <div class="lead-message-list" id="messageLeadList"></div>
+      </div>
+    </div>
   </main>
+
+  <!-- ===================== MARKETERS VIEW ===================== -->
   <main class="content" id="viewMarketers" style="display:none">
-    <div class="page-header"><h1 class="page-title">Marketers</h1></div>
-    <div class="coming-soon"><div class="cs-icon">👥</div><h2>Marketer performance view coming soon</h2></div>
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Marketers</h1>
+        <p class="page-subtitle">Activity, conversions, rankings, and county coverage.</p>
+      </div>
+    </div>
+    <div class="filters-row standalone-filters">
+      <select id="marketerCountyFilter" onchange="renderMarketers()">
+        <option value="">All counties</option>
+      </select>
+      <select id="marketerPersonFilter" onchange="renderMarketers()">
+        <option value="">All marketers</option>
+      </select>
+    </div>
+    <div class="marketer-grid" id="marketerGrid"></div>
   </main>
+
+  <!-- ===================== REPORTS VIEW ===================== -->
   <main class="content" id="viewReports" style="display:none">
-    <div class="page-header"><h1 class="page-title">Reports</h1></div>
-    <div class="coming-soon"><div class="cs-icon">📊</div><h2>Reports & analytics coming soon</h2></div>
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Reports</h1>
+        <p class="page-subtitle">Conversion, source, county, and pipeline analytics.</p>
+      </div>
+      <button class="btn-ghost" onclick="exportCSV()">Export CSV</button>
+    </div>
+    <div class="report-grid" id="reportsGrid"></div>
   </main>
+
+  <!-- ===================== SETTINGS VIEW ===================== -->
   <main class="content" id="viewSettings" style="display:none">
-    <div class="page-header"><h1 class="page-title">Settings</h1></div>
-    <div class="coming-soon"><div class="cs-icon">⚙️</div><h2>Settings coming soon</h2></div>
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Settings</h1>
+        <p class="page-subtitle">Branding, preferences, profile, and notification controls.</p>
+      </div>
+      <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
+    </div>
+    <div class="settings-grid">
+      <div class="panel-card settings-card">
+        <h3 class="panel-title">Branding</h3>
+        <label class="settings-field">Tagline
+          <select id="settingTagline">
+            <option>Smart CRM for smarter fleets</option>
+            <option>Where telematics meets relationships</option>
+          </select>
+        </label>
+        <label class="settings-field">Theme
+          <select id="settingTheme">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </label>
+      </div>
+      <div class="panel-card settings-card">
+        <h3 class="panel-title">Notifications</h3>
+        <label class="toggle-row"><input type="checkbox" id="settingDailyDigest"> Daily follow-up digest</label>
+        <label class="toggle-row"><input type="checkbox" id="settingOverdueAlerts"> Overdue alerts</label>
+        <label class="toggle-row"><input type="checkbox" id="settingWhatsappReminders"> WhatsApp reminder prompts</label>
+      </div>
+      <div class="panel-card settings-card">
+        <h3 class="panel-title">Profile</h3>
+        <label class="settings-field">Username
+          <input id="profileUsername" type="text" disabled>
+        </label>
+        <label class="settings-field">Role
+          <input id="profileRole" type="text" disabled>
+        </label>
+      </div>
+    </div>
   </main>
 
 </div><!-- end .main-wrapper -->
@@ -517,6 +622,8 @@
         <label>Role</label>
         <select id="newRole">
           <option value="">Select role</option>
+          <option value="super_admin">Super Admin</option>
+          <option value="admin">Admin</option>
           <option value="manager">Manager</option>
           <option value="marketer">Marketer</option>
           <option value="staff">Staff</option>
@@ -558,6 +665,23 @@ let currentUserRole = "guest";
 let currentUserId = null;
 let allLeads = [];
 let filteredLeads = [];
+let allUsers = [];
+const ADMIN_ROLES = ["manager", "admin", "super_admin"];
+const PIPELINE_STAGES = ["New", "Contacted", "Proposal", "Won", "Lost"];
+const MESSAGE_TEMPLATES = [
+  {
+    name: "First outreach",
+    body: "Hello {{name}}, this is JendieConnect. We help schools and fleets manage safety, tracking, and telematics with practical CRM-backed follow-up. Would you be open to a quick conversation?"
+  },
+  {
+    name: "Follow-up reminder",
+    body: "Hello {{name}}, following up on our previous conversation about {{services}}. Can we schedule the next step?"
+  },
+  {
+    name: "Demo invite",
+    body: "Hello {{name}}, we can walk you through JendieConnect and the services you selected: {{services}}. What day works for a short demo?"
+  }
+];
 
 function parseJwt(t) {
   try { return JSON.parse(atob(t.split('.')[1])); } catch { return null; }
@@ -573,7 +697,9 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("sidebarAvatar").textContent = (decoded?.username || "?")[0].toUpperCase();
   document.getElementById("sidebarRole").textContent = currentUserRole;
 
-  if (currentUserRole === "manager") {
+  applySavedSettings();
+
+  if (isAdmin()) {
     document.getElementById("adminNavItem").style.display = "flex";
   }
 
@@ -605,7 +731,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("followUpFilterDate").value = new Date().toISOString().split("T")[0];
 
   loadLeads();
-  if (currentUserRole === "manager") loadUsers();
+  if (isAdmin()) loadUsers();
 });
 
 // ===================== VIEW SWITCHER =====================
@@ -625,6 +751,8 @@ function switchView(view) {
   document.querySelectorAll(".nav-item").forEach(n => {
     n.classList.toggle("active", n.dataset.view === view);
   });
+
+  renderModule(view);
 }
 
 window.switchView = switchView;
@@ -640,6 +768,7 @@ async function loadLeads() {
     updateKPIs();
     loadFollowUps();
     renderActivityPanel();
+    renderAllModules();
   } catch (e) {
     showToast("Failed to load leads", "error");
   }
@@ -660,6 +789,19 @@ function populateFilters() {
     el.value = val;
   });
 
+  ["taskMarketerFilter", "marketerPersonFilter"].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const val = el.value;
+    el.innerHTML = `<option value="">All marketers</option>`;
+    marketers.forEach(m => {
+      const o = document.createElement("option");
+      o.value = m; o.textContent = m;
+      el.appendChild(o);
+    });
+    el.value = val;
+  });
+
   const locations = [...new Set(allLeads.map(l => l.location).filter(Boolean))];
   const locEl = document.getElementById("filterLocation");
   if (locEl) {
@@ -671,6 +813,18 @@ function populateFilters() {
       locEl.appendChild(o);
     });
     locEl.value = val;
+  }
+
+  const marketerCountyFilter = document.getElementById("marketerCountyFilter");
+  if (marketerCountyFilter) {
+    const val = marketerCountyFilter.value;
+    marketerCountyFilter.innerHTML = `<option value="">All counties</option>`;
+    locations.sort().forEach(loc => {
+      const o = document.createElement("option");
+      o.value = loc; o.textContent = loc;
+      marketerCountyFilter.appendChild(o);
+    });
+    marketerCountyFilter.value = val;
   }
 }
 
@@ -739,7 +893,7 @@ function renderDashboardTable(leads) {
           <button class="action-icon view" onclick="event.stopPropagation(); openLeadDetail(${JSON.stringify(l).replace(/"/g,'&quot;')})" title="View">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
-          ${currentUserRole === "manager" ? `<button class="action-icon del" onclick="event.stopPropagation(); deleteLead(${l.id})" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>` : ""}
+          ${isAdmin() ? `<button class="action-icon del" onclick="event.stopPropagation(); deleteLead(${l.id})" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>` : ""}
         </div>
       </td>`;
     tbody.appendChild(tr);
@@ -766,7 +920,8 @@ function renderFullTable(leads) {
       <td>${l.submitted_by || "–"}</td>
       <td>
         <div class="actions-cell">
-          ${currentUserRole === "manager" ? `<button class="action-icon del" onclick="deleteLead(${l.id})" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>` : ""}
+          <button class="action-icon view" onclick="openLeadDetail(${JSON.stringify(l).replace(/"/g,'&quot;')})" title="View"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          ${isAdmin() ? `<button class="action-icon del" onclick="deleteLead(${l.id})" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>` : ""}
         </div>
       </td>`;
     tbody.appendChild(tr);
@@ -785,9 +940,12 @@ function updateKPIs() {
   const urgent = leads.filter(l => l.follow_up_date && l.follow_up_date.split("T")[0] === today).length;
   document.getElementById("kpiFollowupsDelta").textContent = `${urgent} urgent`;
 
+  const won = leads.filter(l => getLeadStage(l) === "Won").length;
   const interested = leads.filter(l => l.interest_level === "Interested").length;
-  const rate = leads.length ? Math.round((interested / leads.length) * 100) : 0;
+  const conversionBase = won || interested;
+  const rate = leads.length ? Math.round((conversionBase / leads.length) * 100) : 0;
   document.getElementById("kpiConversion").textContent = `${rate}%`;
+  document.getElementById("kpiConversionTarget").textContent = `Target: 30% (${rate >= 30 ? "on track" : "below target"})`;
 
   const locCount = {};
   leads.forEach(l => { if (l.location) locCount[l.location] = (locCount[l.location] || 0) + 1; });
@@ -847,7 +1005,9 @@ function renderActivityPanel() {
 
   if (sorted.length) {
     document.getElementById("activitySummary").textContent =
-      `${sorted[0][0]} has submitted the most leads (${sorted[0][1]}). ${sorted.length > 1 ? sorted[1][0] + " is close behind.' " : ""}`;
+      `${sorted[0][0]} has submitted the most leads (${sorted[0][1]}). ${sorted.length > 1 ? sorted[1][0] + " is close behind." : ""}`;
+  } else {
+    document.getElementById("activitySummary").textContent = "No marketer activity yet.";
   }
 
   const list = document.getElementById("activityList");
@@ -888,6 +1048,293 @@ window.openLeadDetail = function(l) {
   document.getElementById("leadDetailModal").style.display = "flex";
 };
 
+// ===================== WORK MODULES =====================
+function isAdmin() {
+  return ADMIN_ROLES.includes(currentUserRole);
+}
+
+function getVisibleLeads() {
+  return currentUserRole === "marketer"
+    ? allLeads.filter(l => l.submitted_by_id === currentUserId)
+    : allLeads;
+}
+
+function getLeadStage(lead) {
+  if (lead.pipeline_stage) return lead.pipeline_stage;
+  if (lead.interest_level === "Interested") return "Proposal";
+  if (lead.interest_level === "Not Interested") return "Lost";
+  return lead.next_action ? "Contacted" : "New";
+}
+
+function renderAllModules() {
+  renderPipeline();
+  renderTasks();
+  renderMessaging();
+  renderMarketers();
+  renderReports();
+  renderSettings();
+}
+
+function renderModule(view) {
+  const map = {
+    pipeline: renderPipeline,
+    tasks: renderTasks,
+    whatsapp: renderMessaging,
+    marketers: renderMarketers,
+    reports: renderReports,
+    settings: renderSettings,
+    admin: () => { if (isAdmin()) loadUsers(); }
+  };
+  if (map[view]) map[view]();
+}
+
+function renderPipeline() {
+  const board = document.getElementById("pipelineBoard");
+  if (!board) return;
+  const leads = getVisibleLeads();
+  board.innerHTML = PIPELINE_STAGES.map(stage => {
+    const stageLeads = leads.filter(l => getLeadStage(l) === stage);
+    return `
+      <section class="kanban-column" data-stage="${stage}">
+        <div class="kanban-column-header">
+          <span>${stage}</span>
+          <strong>${stageLeads.length}</strong>
+        </div>
+        <div class="kanban-dropzone" ondragover="event.preventDefault()" ondrop="dropLead(event, '${stage}')">
+          ${stageLeads.map(renderPipelineCard).join("") || `<div class="mini-empty">No leads</div>`}
+        </div>
+      </section>`;
+  }).join("");
+}
+
+function renderPipelineCard(lead) {
+  return `
+    <article class="kanban-card" draggable="true" ondragstart="dragLead(event, ${lead.id})">
+      <div class="lead-name">${lead.contact_name || lead.lead_type || "Lead"}</div>
+      <div class="lead-meta">${lead.location || "No county"} · ${lead.submitted_by || "Unassigned"}</div>
+      <div class="kanban-card-footer">${renderStatusBadge(lead.interest_level)}<button class="btn-ghost-sm" onclick="openLeadDetailById(${lead.id})">View</button></div>
+    </article>`;
+}
+
+window.dragLead = (event, id) => event.dataTransfer.setData("leadId", id);
+
+window.dropLead = async (event, stage) => {
+  event.preventDefault();
+  const id = event.dataTransfer.getData("leadId");
+  const lead = allLeads.find(l => String(l.id) === String(id));
+  if (!lead || getLeadStage(lead) === stage) return;
+
+  const previousStage = lead.pipeline_stage;
+  lead.pipeline_stage = stage;
+  renderPipeline();
+  updateKPIs();
+  renderReports();
+
+  try {
+    const res = await fetch(`${API_BASE}/api/leads/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ pipeline_stage: stage })
+    });
+    if (!res.ok) throw new Error("Stage update failed");
+    showToast(`Moved to ${stage}`);
+  } catch (err) {
+    lead.pipeline_stage = previousStage;
+    renderPipeline();
+    updateKPIs();
+    showToast("Could not update stage", "error");
+  }
+};
+
+window.openLeadDetailById = id => {
+  const lead = allLeads.find(l => l.id === id);
+  if (lead) openLeadDetail(lead);
+};
+
+function renderTasks() {
+  const list = document.getElementById("tasksList");
+  if (!list) return;
+  const today = new Date().toISOString().split("T")[0];
+  const status = document.getElementById("taskStatusFilter")?.value || "";
+  const marketer = document.getElementById("taskMarketerFilter")?.value || "";
+  const tasks = getVisibleLeads()
+    .filter(l => l.follow_up_date)
+    .filter(l => !marketer || l.submitted_by === marketer)
+    .filter(l => {
+      const due = l.follow_up_date.split("T")[0];
+      if (status === "overdue") return due < today;
+      if (status === "today") return due === today;
+      if (status === "upcoming") return due > today;
+      return true;
+    })
+    .sort((a,b) => new Date(a.follow_up_date) - new Date(b.follow_up_date));
+
+  list.innerHTML = tasks.map(l => `
+    <div class="task-item">
+      <div>
+        <div class="lead-name">${l.next_action || "Follow up"}: ${l.contact_name || l.lead_type || "Lead"}</div>
+        <div class="lead-meta">${formatDateShort(l.follow_up_date)} · ${l.submitted_by || "Unassigned"} · ${l.location || "No county"}</div>
+      </div>
+      <div class="actions-cell">
+        ${l.phone ? `<a class="btn-ghost-sm" href="tel:${l.phone}">Call</a>` : ""}
+        <button class="btn-ghost-sm" onclick="openLeadDetailById(${l.id})">Open</button>
+      </div>
+    </div>`).join("") || `<div class="empty-state"><h3>No tasks found</h3><p>Follow-up tasks appear when leads have due dates.</p></div>`;
+}
+
+function renderMessaging() {
+  const templateList = document.getElementById("templateList");
+  const leadList = document.getElementById("messageLeadList");
+  if (!templateList || !leadList) return;
+
+  templateList.innerHTML = MESSAGE_TEMPLATES.map((t, index) => `
+    <button class="template-card" onclick="selectMessageTemplate(${index})">
+      <strong>${t.name}</strong>
+      <span>${t.body}</span>
+    </button>`).join("");
+
+  const leads = getVisibleLeads().filter(l => l.phone).slice(0, 25);
+  leadList.innerHTML = leads.map(l => {
+    const text = buildMessage(MESSAGE_TEMPLATES[0].body, l);
+    return `
+      <div class="message-lead">
+        <div>
+          <div class="lead-name">${l.contact_name || l.lead_type || "Lead"}</div>
+          <div class="lead-meta">${l.phone} · ${l.location || "No county"}</div>
+        </div>
+        <a class="btn-ghost-sm" target="_blank" href="https://wa.me/${normalizePhone(l.phone)}?text=${encodeURIComponent(text)}">WhatsApp</a>
+      </div>`;
+  }).join("") || `<div class="empty-state"><h3>No reachable contacts</h3><p>Add phone numbers to leads to enable quick outreach.</p></div>`;
+}
+
+window.selectMessageTemplate = index => {
+  const template = MESSAGE_TEMPLATES[index] || MESSAGE_TEMPLATES[0];
+  const leadList = document.getElementById("messageLeadList");
+  const leads = getVisibleLeads().filter(l => l.phone).slice(0, 25);
+  leadList.innerHTML = leads.map(l => `
+    <div class="message-lead">
+      <div>
+        <div class="lead-name">${l.contact_name || l.lead_type || "Lead"}</div>
+        <div class="lead-meta">${template.name} · ${l.phone}</div>
+      </div>
+      <a class="btn-ghost-sm" target="_blank" href="https://wa.me/${normalizePhone(l.phone)}?text=${encodeURIComponent(buildMessage(template.body, l))}">Send</a>
+    </div>`).join("");
+};
+
+function renderMarketers() {
+  const grid = document.getElementById("marketerGrid");
+  if (!grid) return;
+  const county = document.getElementById("marketerCountyFilter")?.value || "";
+  const person = document.getElementById("marketerPersonFilter")?.value || "";
+  const leads = getVisibleLeads().filter(l => (!county || l.location === county) && (!person || l.submitted_by === person));
+  const grouped = {};
+  leads.forEach(l => {
+    const name = l.submitted_by || "Unassigned";
+    grouped[name] ||= { total: 0, won: 0, followups: 0, counties: new Set(), recent: [] };
+    grouped[name].total += 1;
+    if (getLeadStage(l) === "Won" || l.interest_level === "Interested") grouped[name].won += 1;
+    if (l.follow_up_date) grouped[name].followups += 1;
+    if (l.location) grouped[name].counties.add(l.location);
+    grouped[name].recent.push(l);
+  });
+
+  grid.innerHTML = Object.entries(grouped).sort((a,b) => b[1].total - a[1].total).map(([name, stats], i) => `
+    <article class="marketer-card">
+      <div class="rank-pill">#${i + 1}</div>
+      <h3>${name}</h3>
+      <div class="metric-row"><span>Leads</span><strong>${stats.total}</strong></div>
+      <div class="metric-row"><span>Conversions</span><strong>${stats.won}</strong></div>
+      <div class="metric-row"><span>Follow-ups</span><strong>${stats.followups}</strong></div>
+      <div class="metric-row"><span>Counties</span><strong>${stats.counties.size}</strong></div>
+    </article>`).join("") || `<div class="empty-state"><h3>No marketer data</h3><p>Activity appears after leads are submitted.</p></div>`;
+}
+
+function renderReports() {
+  const grid = document.getElementById("reportsGrid");
+  if (!grid) return;
+  const leads = getVisibleLeads();
+  const byStage = countBy(leads, getLeadStage);
+  const byCounty = countBy(leads, l => l.location || "Unspecified");
+  const bySource = countBy(leads, l => l.lead_source || "Field Visit");
+  const byStatus = countBy(leads, l => l.interest_level || "Unspecified");
+  grid.innerHTML = [
+    renderChartCard("Pipeline Stages", byStage),
+    renderChartCard("County Distribution", byCounty),
+    renderChartCard("Lead Sources", bySource),
+    renderChartCard("Interest Status", byStatus)
+  ].join("");
+}
+
+function renderChartCard(title, data) {
+  const entries = Object.entries(data).sort((a,b) => b[1]-a[1]);
+  const max = Math.max(1, ...entries.map(e => e[1]));
+  return `
+    <div class="panel-card chart-card">
+      <h3 class="panel-title">${title}</h3>
+      <div class="bar-list">
+        ${entries.map(([label, value]) => `
+          <div class="bar-row">
+            <span>${label}</span>
+            <div class="bar-track"><div class="bar-fill" style="width:${Math.max(8, (value / max) * 100)}%"></div></div>
+            <strong>${value}</strong>
+          </div>`).join("") || `<div class="mini-empty">No data</div>`}
+      </div>
+    </div>`;
+}
+
+function renderSettings() {
+  const settings = JSON.parse(localStorage.getItem("jendieSettings") || "{}");
+  if (document.getElementById("profileUsername")) {
+    document.getElementById("profileUsername").value = decoded?.username || "";
+    document.getElementById("profileRole").value = currentUserRole;
+    document.getElementById("settingTagline").value = settings.tagline || "Smart CRM for smarter fleets";
+    document.getElementById("settingTheme").value = localStorage.getItem("theme") || "light";
+    document.getElementById("settingDailyDigest").checked = !!settings.dailyDigest;
+    document.getElementById("settingOverdueAlerts").checked = settings.overdueAlerts !== false;
+    document.getElementById("settingWhatsappReminders").checked = settings.whatsappReminders !== false;
+  }
+}
+
+function applySavedSettings() {
+  const settings = JSON.parse(localStorage.getItem("jendieSettings") || "{}");
+  const tagline = settings.tagline || "Smart CRM for smarter fleets";
+  document.querySelectorAll(".brand-sub, .login-brand-sub").forEach(el => el.textContent = tagline);
+}
+
+window.saveSettings = function() {
+  const settings = {
+    tagline: document.getElementById("settingTagline").value,
+    dailyDigest: document.getElementById("settingDailyDigest").checked,
+    overdueAlerts: document.getElementById("settingOverdueAlerts").checked,
+    whatsappReminders: document.getElementById("settingWhatsappReminders").checked
+  };
+  localStorage.setItem("jendieSettings", JSON.stringify(settings));
+  localStorage.setItem("theme", document.getElementById("settingTheme").value);
+  document.body.classList.toggle("dark", document.getElementById("settingTheme").value === "dark");
+  applySavedSettings();
+  showToast("Settings saved");
+};
+
+function countBy(items, getter) {
+  return items.reduce((acc, item) => {
+    const key = getter(item);
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+}
+
+function normalizePhone(phone) {
+  const digits = String(phone || "").replace(/\D/g, "");
+  if (digits.startsWith("0")) return `254${digits.slice(1)}`;
+  return digits;
+}
+
+function buildMessage(template, lead) {
+  return template
+    .replaceAll("{{name}}", lead.contact_name || "there")
+    .replaceAll("{{services}}", (lead.services || []).join(", ") || "JendieConnect services");
+}
+
 // ===================== ADD LEAD =====================
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("addLeadForm").addEventListener("submit", async e => {
@@ -895,6 +1342,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = e.target;
     const formData = new FormData(form);
     const services = [...form.querySelectorAll('input[name="services"]:checked')].map(c => c.value);
+    formData.delete("services");
     services.forEach(s => formData.append("services", s));
     try {
       const res = await fetch(`${API_BASE}/api/leads`, {
@@ -916,11 +1364,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const password = document.getElementById("newPassword").value;
     const role = document.getElementById("newRole").value;
     try {
-      await fetch(`${API_BASE}/api/users`, {
+      const res = await fetch(`${API_BASE}/api/users`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ username, password, role })
       });
+      if (!res.ok) throw new Error("User create failed");
       showToast("User created ✓");
       closeModal("userModal");
       e.target.reset();
@@ -931,20 +1380,47 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ===================== USERS =====================
 async function loadUsers() {
+  if (!isAdmin()) return;
   const res = await fetch(`${API_BASE}/api/users`, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) {
+    showToast("Unable to load users", "error");
+    return;
+  }
   const users = await res.json();
+  allUsers = users;
   const tbody = document.getElementById("usersTableBody");
   tbody.innerHTML = "";
   users.forEach(u => {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${u.id}</td><td>${u.username}</td><td><span class="role-chip role-${u.role}">${u.role}</span></td><td>${formatDateShort(u.created_at)}</td><td><button class="action-icon del" onclick="deleteUser(${u.id})"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button></td>`;
+    tr.innerHTML = `<td>${u.id}</td><td>${u.username}</td><td><select class="role-select" onchange="updateUserRole(${u.id}, this.value)">${["super_admin","admin","manager","marketer","staff"].map(r => `<option value="${r}" ${u.role === r ? "selected" : ""}>${r.replace("_"," ")}</option>`).join("")}</select></td><td>${formatDateShort(u.created_at)}</td><td><button class="action-icon del" onclick="deleteUser(${u.id})" ${u.id === currentUserId ? "disabled" : ""}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button></td>`;
     tbody.appendChild(tr);
   });
 }
 
+window.updateUserRole = async (id, role) => {
+  const user = allUsers.find(u => u.id === id);
+  if (!user || user.role === role) return;
+  const res = await fetch(`${API_BASE}/api/users/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ role })
+  });
+  if (!res.ok) {
+    showToast("Could not update role", "error");
+    loadUsers();
+    return;
+  }
+  showToast("Role updated");
+  loadUsers();
+};
+
 window.deleteUser = async id => {
   if (!confirm("Delete this user?")) return;
-  await fetch(`${API_BASE}/api/users/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+  const res = await fetch(`${API_BASE}/api/users/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) {
+    showToast("Could not delete user", "error");
+    return;
+  }
   loadUsers();
 };
 
@@ -982,7 +1458,11 @@ document.addEventListener("click", e => {
 window.toggleSidebar = function() { document.getElementById("sidebar").classList.toggle("collapsed"); };
 
 // ===================== LOGOUT =====================
-window.logout = function() { localStorage.removeItem("jwtToken"); location.href = "login.html"; };
+window.logout = function() {
+  localStorage.removeItem("jwtToken");
+  document.cookie = "jwtToken=; Max-Age=0; path=/";
+  location.href = "login.html";
+};
 
 // ===================== HELPERS =====================
 function renderStatusBadge(status) {

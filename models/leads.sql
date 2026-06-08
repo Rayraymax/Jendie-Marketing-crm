@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    role VARCHAR(50) NOT NULL, -- marketer, staff, manager
+    role VARCHAR(50) NOT NULL, -- marketer, staff, manager, admin, super_admin
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -25,9 +25,22 @@ CREATE TABLE IF NOT EXISTS school_leads (
     follow_up_date DATE,
     image_path TEXT,
     services TEXT[],                                         -- Array of selected services
+    pipeline_stage VARCHAR(40) NOT NULL DEFAULT 'New',        -- New, Contacted, Proposal, Won, Lost
+    lead_source VARCHAR(100) DEFAULT 'Field Visit',
     submitted_by_id INTEGER REFERENCES users(id) ON DELETE SET NULL,  -- Link to submitting user
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE school_leads
+ADD COLUMN IF NOT EXISTS pipeline_stage VARCHAR(40) NOT NULL DEFAULT 'New',
+ADD COLUMN IF NOT EXISTS lead_source VARCHAR(100) DEFAULT 'Field Visit',
+ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+
+UPDATE users
+SET role = 'super_admin'
+WHERE id = (SELECT MIN(id) FROM users)
+  AND role IN ('manager', 'admin', 'staff', 'marketer');
 
 -- ✅ Services table
 CREATE TABLE IF NOT EXISTS services (
@@ -50,3 +63,4 @@ ON CONFLICT (name) DO NOTHING;  -- Prevent duplicates
 CREATE INDEX IF NOT EXISTS idx_leads_interest_level ON school_leads(interest_level);
 CREATE INDEX IF NOT EXISTS idx_leads_submitted_by ON school_leads(submitted_by_id);
 CREATE INDEX IF NOT EXISTS idx_leads_lead_type ON school_leads(lead_type);
+CREATE INDEX IF NOT EXISTS idx_leads_pipeline_stage ON school_leads(pipeline_stage);

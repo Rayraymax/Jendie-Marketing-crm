@@ -111,8 +111,8 @@
         if (res.ok) {
           const data = await res.json();
           localStorage.setItem('jwtToken', data.token);
-          // Redirect based on role
-          window.location.href = data.role === 'marketer' ? 'index.html' : 'dashboard.html';
+          document.cookie = `jwtToken=${data.token}; Max-Age=3600; path=/; SameSite=Lax`;
+          window.location.href = 'dashboard.html';
         } else {
           const err = await res.json().catch(() => ({}));
           showError(err.message || err.error || 'Incorrect username or password. Please try again.');

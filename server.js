@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const leadsRoutes = require('./routes/leads');
 const authRoutes = require('./routes/auth');
 const usersRoutes = require('./routes/users');
+const pool = require('./db');
 
 const app = express();
 
@@ -38,7 +39,6 @@ app.use(express.json());
 // -------------------------
 // Serve frontend static files
 // -------------------------
-app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
 // Default route → login
 app.get('/', (req, res) => {
@@ -54,8 +54,19 @@ app.get('/login.html', (req, res) => {
 // Auth middleware
 // Returns 401 JSON for API calls, redirects for page requests
 // -------------------------
+function getCookie(req, name) {
+  const cookieHeader = req.headers.cookie || '';
+  return cookieHeader
+    .split(';')
+    .map(cookie => cookie.trim())
+    .find(cookie => cookie.startsWith(`${name}=`))
+    ?.split('=')
+    .slice(1)
+    .join('=') || null;
+}
+
 function ensureAuthenticated(req, res, next) {
-  const token = req.headers.authorization?.split(' ')[1] || null;
+  const token = req.headers.authorization?.split(' ')[1] || getCookie(req, 'jwtToken');
 
   if (!token) {
     // If it's an API call return JSON 401, otherwise redirect to login
@@ -89,11 +100,35 @@ app.get('/index.html', ensureAuthenticated, (req, res) => {
 });
 
 // -------------------------
+// Serve frontend assets after protected HTML page routes
+// -------------------------
+app.use(express.static(path.join(__dirname, 'public'), { index: false }));
+
+// -------------------------
 // API routes
 // -------------------------
 app.use('/api/leads', leadsRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
+
+// -------------------------
+// Lightweight schema upgrades for existing deployments
+// -------------------------
+async function ensureSchema() {
+  await pool.query(`
+    ALTER TABLE school_leads
+      ADD COLUMN IF NOT EXISTS pipeline_stage VARCHAR(40) NOT NULL DEFAULT 'New',
+      ADD COLUMN IF NOT EXISTS lead_source VARCHAR(100) DEFAULT 'Field Visit',
+      ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  `);
+
+  await pool.query(`
+    UPDATE users
+    SET role = 'super_admin'
+    WHERE id = (SELECT MIN(id) FROM users)
+      AND role IN ('manager', 'admin', 'staff', 'marketer')
+  `);
+}
 
 // -------------------------
 // Global error handler
@@ -110,6 +145,12 @@ app.use((err, req, res, next) => {
 // Start server
 // -------------------------
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+ensureSchema()
+  .catch(err => {
+    console.error('Schema upgrade check failed:', err.message);
+  })
+  .finally(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  });

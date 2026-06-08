@@ -23,7 +23,7 @@ function authorizeRoles(...allowedRoles) {
 router.post(
   '/',
   authMiddleware,
-  authorizeRoles('marketer', 'manager'),
+  authorizeRoles('marketer', 'manager', 'admin', 'super_admin'),
   upload.single('lead_image'),
   async (req, res) => {
     try {
@@ -39,7 +39,9 @@ router.post(
         notes,
         next_action,
         follow_up_date,
-        services
+        services,
+        pipeline_stage = 'New',
+        lead_source = 'Field Visit'
       } = req.body;
 
       const servicesArray = services
@@ -58,8 +60,8 @@ router.post(
 
       const result = await pool.query(
         `INSERT INTO school_leads
-        (lead_type, location, contact_name, contact_role, phone, email, visit_date, interest_level, notes, next_action, follow_up_date, image_path, submitted_by_id, services, created_at)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,NOW()) RETURNING *`,
+        (lead_type, location, contact_name, contact_role, phone, email, visit_date, interest_level, notes, next_action, follow_up_date, image_path, submitted_by_id, services, pipeline_stage, lead_source, created_at)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,NOW()) RETURNING *`,
         [
           lead_type,
           location,
@@ -74,7 +76,9 @@ router.post(
           follow_up_date,
           imagePath,
           req.user.id,
-          servicesArray
+          servicesArray,
+          pipeline_stage,
+          lead_source
         ]
       );
 
@@ -120,15 +124,73 @@ router.get('/', authMiddleware, async (req, res) => {
 });
 
 // ----------------------
+// Update lead details / pipeline stage
+// ----------------------
+router.put('/:id', authMiddleware, async (req, res) => {
+  try {
+    const leadId = parseInt(req.params.id, 10);
+    const allowedStages = ['New', 'Contacted', 'Proposal', 'Won', 'Lost'];
+    const allowedFields = [
+      'lead_type',
+      'location',
+      'contact_name',
+      'contact_role',
+      'phone',
+      'email',
+      'visit_date',
+      'interest_level',
+      'notes',
+      'next_action',
+      'follow_up_date',
+      'pipeline_stage',
+      'lead_source'
+    ];
+
+    const existing = await pool.query('SELECT * FROM school_leads WHERE id = $1', [leadId]);
+    if (existing.rows.length === 0) return res.status(404).json({ error: 'Lead not found' });
+
+    const lead = existing.rows[0];
+    const isOwner = lead.submitted_by_id === req.user.id;
+    const isAdmin = ['manager', 'admin', 'super_admin'].includes(req.user.role);
+    if (!isOwner && !isAdmin) return res.status(403).json({ error: 'Forbidden: you can only update your own leads' });
+
+    if (req.body.pipeline_stage && !allowedStages.includes(req.body.pipeline_stage)) {
+      return res.status(400).json({ error: 'Invalid pipeline stage' });
+    }
+
+    const updates = [];
+    const params = [];
+    allowedFields.forEach(field => {
+      if (Object.prototype.hasOwnProperty.call(req.body, field)) {
+        params.push(req.body[field] || null);
+        updates.push(`${field} = $${params.length}`);
+      }
+    });
+
+    if (!updates.length) return res.status(400).json({ error: 'No valid fields to update' });
+
+    params.push(leadId);
+    const result = await pool.query(
+      `UPDATE school_leads SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${params.length} RETURNING *`,
+      params
+    );
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error updating lead:', err);
+    res.status(500).send('Server error');
+  }
+});
+
+// ----------------------
 // Delete lead by ID
 // ----------------------
 router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const leadId = parseInt(req.params.id);
 
-    // Only managers can delete
-    if (req.user.role !== 'manager') {
-      return res.status(403).json({ error: 'Forbidden: only managers can delete leads' });
+    if (!['manager', 'admin', 'super_admin'].includes(req.user.role)) {
+      return res.status(403).json({ error: 'Forbidden: only admins can delete leads' });
     }
 
     const result = await pool.query(

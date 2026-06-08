@@ -9,7 +9,26 @@ const pool = require('../db');
 // -------------------------
 router.post('/register', async (req, res) => {
   try {
-    const { username, password, role } = req.body;
+    const { username, password } = req.body;
+    let { role } = req.body;
+
+    const userCount = await pool.query('SELECT COUNT(*)::int AS count FROM users');
+    const isBootstrap = userCount.rows[0].count === 0;
+
+    if (!isBootstrap) {
+      const token = req.headers.authorization?.split(' ')[1] || null;
+      if (!token) return res.status(401).json({ error: 'Registration is admin-only' });
+
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      if (!['manager', 'admin', 'super_admin'].includes(decoded.role)) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+    }
+
+    role = isBootstrap ? 'super_admin' : (role || 'marketer');
+    if (!['marketer', 'staff', 'manager', 'admin', 'super_admin'].includes(role)) {
+      return res.status(400).json({ error: 'Invalid role' });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -47,6 +66,14 @@ router.post('/login', async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
+
+    res.cookie('jwtToken', token, {
+      httpOnly: false,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+      maxAge: 60 * 60 * 1000
+    });
 
     res.json({ token, role: user.role, username: user.username });
   } catch (err) {
