@@ -42,6 +42,21 @@ SET role = 'super_admin'
 WHERE id = (SELECT MIN(id) FROM users)
   AND role IN ('manager', 'admin', 'staff', 'marketer');
 
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id SERIAL PRIMARY KEY,
+    actor_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    actor_username VARCHAR(100),
+    actor_role VARCHAR(50),
+    action VARCHAR(80) NOT NULL,
+    entity_type VARCHAR(80) NOT NULL,
+    entity_id INTEGER,
+    details JSONB DEFAULT '{}'::jsonb,
+    ip_address VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at DESC);
+
 -- ✅ Services table
 CREATE TABLE IF NOT EXISTS services (
     id SERIAL PRIMARY KEY,

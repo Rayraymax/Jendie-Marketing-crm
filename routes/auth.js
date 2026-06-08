@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const pool = require('../db');
+const logAudit = require('../middleware/auditLogger');
 
 // -------------------------
 // Register new user
@@ -36,6 +37,15 @@ router.post('/register', async (req, res) => {
       'INSERT INTO users (username, password, role) VALUES ($1, $2, $3) RETURNING id, username, role',
       [username, hashedPassword, role]
     );
+
+    req.user = isBootstrap
+      ? result.rows[0]
+      : jwt.verify(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET);
+    await logAudit(req, 'user_registered', 'user', result.rows[0].id, {
+      username: result.rows[0].username,
+      role: result.rows[0].role,
+      bootstrap: isBootstrap
+    });
 
     res.json(result.rows[0]);
   } catch (err) {
@@ -73,6 +83,12 @@ router.post('/login', async (req, res) => {
       secure: process.env.NODE_ENV === 'production',
       path: '/',
       maxAge: 60 * 60 * 1000
+    });
+
+    req.user = { id: user.id, username: user.username, role: user.role };
+    await logAudit(req, 'user_login', 'auth', user.id, {
+      username: user.username,
+      role: user.role
     });
 
     res.json({ token, role: user.role, username: user.username });

@@ -2,9 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2d1b69">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>JendieConnect - Dashboard</title>
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/school-crm-logo.png">
+<link rel="manifest" href="/manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="dashboard.css">
@@ -82,6 +88,7 @@
     </button>
   </div>
 </aside>
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
 
 <!-- ===================== MAIN ===================== -->
 <div class="main-wrapper">
@@ -116,6 +123,10 @@
       <button class="btn-primary" onclick="openNewLeadModal()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         New Lead
+      </button>
+      <button class="btn-ghost install-btn" id="installAppBtn" style="display:none" onclick="installApp()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><polyline points="7 10 12 15 17 10"/><rect x="5" y="19" width="14" height="2" rx="1"/></svg>
+        Add to Desktop
       </button>
       <button class="icon-btn" id="themeToggle" title="Toggle theme">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -359,6 +370,27 @@
         </thead>
         <tbody id="usersTableBody"></tbody>
       </table>
+    </div>
+    <div class="table-card audit-card">
+      <div class="table-card-header">
+        <div>
+          <h2 class="card-title">Audit Logs</h2>
+          <p class="card-subtitle">Who did what, when, and to which record</p>
+        </div>
+        <button class="btn-ghost-sm" onclick="loadAuditLogs()">Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table id="auditTable">
+          <thead>
+            <tr><th>When</th><th>Actor</th><th>Action</th><th>Target</th><th>Details</th></tr>
+          </thead>
+          <tbody id="auditTableBody"></tbody>
+        </table>
+      </div>
+      <div class="empty-state compact" id="emptyAuditLogs" style="display:none">
+        <h3>No audit logs yet</h3>
+        <p>Activity will appear after users log in or records change.</p>
+      </div>
     </div>
   </main>
 
@@ -666,6 +698,8 @@ let currentUserId = null;
 let allLeads = [];
 let filteredLeads = [];
 let allUsers = [];
+let auditLogs = [];
+let deferredInstallPrompt = null;
 const ADMIN_ROLES = ["manager", "admin", "super_admin"];
 const PIPELINE_STAGES = ["New", "Contacted", "Proposal", "Won", "Lost"];
 const MESSAGE_TEMPLATES = [
@@ -692,6 +726,9 @@ if (decoded) { currentUserRole = decoded.role; currentUserId = decoded.id; }
 
 // ===================== INIT =====================
 document.addEventListener("DOMContentLoaded", () => {
+  registerServiceWorker();
+  setupInstallPrompt();
+
   // Set user info in sidebar
   document.getElementById("sidebarUsername").textContent = decoded?.username || currentUserRole;
   document.getElementById("sidebarAvatar").textContent = (decoded?.username || "?")[0].toUpperCase();
@@ -741,6 +778,7 @@ document.getElementById("notifBtn").addEventListener("click", () => {
       e.preventDefault();
       const view = item.dataset.view;
       switchView(view);
+      closeSidebar();
       document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
       item.classList.add("active");
     });
@@ -750,7 +788,10 @@ document.getElementById("notifBtn").addEventListener("click", () => {
   document.getElementById("followUpFilterDate").value = new Date().toISOString().split("T")[0];
 
   loadLeads();
-  if (isAdmin()) loadUsers();
+  if (isAdmin()) {
+    loadUsers();
+    loadAuditLogs();
+  }
 });
 
 // ===================== VIEW SWITCHER =====================
@@ -1102,7 +1143,12 @@ function renderModule(view) {
     marketers: renderMarketers,
     reports: renderReports,
     settings: renderSettings,
-    admin: () => { if (isAdmin()) loadUsers(); }
+    admin: () => {
+      if (isAdmin()) {
+        loadUsers();
+        loadAuditLogs();
+      }
+    }
   };
   if (map[view]) map[view]();
 }
@@ -1157,6 +1203,7 @@ window.dropLead = async (event, stage) => {
     });
     if (!res.ok) throw new Error("Stage update failed");
     showToast(`Moved to ${stage}`);
+    if (isAdmin()) loadAuditLogs();
   } catch (err) {
     lead.pipeline_stage = previousStage;
     renderPipeline();
@@ -1374,6 +1421,7 @@ document.addEventListener("DOMContentLoaded", () => {
       closeModal("newLeadModal");
       form.reset();
       loadLeads();
+      if (isAdmin()) loadAuditLogs();
     } catch { showToast("Error saving lead", "error"); }
   });
 
@@ -1393,11 +1441,49 @@ document.addEventListener("DOMContentLoaded", () => {
       closeModal("userModal");
       e.target.reset();
       loadUsers();
+      loadAuditLogs();
     } catch { showToast("Error creating user", "error"); }
   });
 });
 
 // ===================== USERS =====================
+async function loadAuditLogs() {
+  if (!isAdmin()) return;
+  const tbody = document.getElementById("auditTableBody");
+  const empty = document.getElementById("emptyAuditLogs");
+  if (!tbody) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/audit-logs`, { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) throw new Error("Unable to load audit logs");
+    auditLogs = await res.json();
+    tbody.innerHTML = "";
+
+    if (!auditLogs.length) {
+      if (empty) empty.style.display = "flex";
+      return;
+    }
+    if (empty) empty.style.display = "none";
+
+    auditLogs.forEach(log => {
+      const details = log.details || {};
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${formatDateTime(log.created_at)}</td>
+        <td><div class="lead-name">${log.actor_username || "System"}</div><div class="lead-meta">${log.actor_role || ""}</div></td>
+        <td><span class="audit-action">${formatAuditAction(log.action)}</span></td>
+        <td>${log.entity_type || "record"} ${log.entity_id ? `#${log.entity_id}` : ""}</td>
+        <td><div class="audit-details">${formatAuditDetails(details)}</div></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    showToast("Unable to load audit logs", "error");
+  }
+}
+
+window.loadAuditLogs = loadAuditLogs;
+
 async function loadUsers() {
   if (!isAdmin()) return;
   const res = await fetch(`${API_BASE}/api/users`, { headers: { Authorization: `Bearer ${token}` } });
@@ -1431,6 +1517,7 @@ window.updateUserRole = async (id, role) => {
   }
   showToast("Role updated");
   loadUsers();
+  loadAuditLogs();
 };
 
 window.deleteUser = async id => {
@@ -1441,6 +1528,7 @@ window.deleteUser = async id => {
     return;
   }
   loadUsers();
+  loadAuditLogs();
 };
 
 // ===================== DELETE LEAD =====================
@@ -1449,6 +1537,7 @@ window.deleteLead = async id => {
   await fetch(`${API_BASE}/api/leads/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
   showToast("Lead deleted");
   loadLeads();
+  if (isAdmin()) loadAuditLogs();
 };
 
 // ===================== EXPORT =====================
@@ -1473,8 +1562,51 @@ document.addEventListener("click", e => {
   if (e.target.classList.contains("modal")) closeModal(e.target.id);
 });
 
+// ===================== PWA =====================
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+  navigator.serviceWorker.register("/service-worker.js").catch(err => console.warn("Service worker registration failed", err));
+}
+
+function setupInstallPrompt() {
+  const installBtn = document.getElementById("installAppBtn");
+  window.addEventListener("beforeinstallprompt", event => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    if (installBtn) installBtn.style.display = "inline-flex";
+  });
+
+  window.addEventListener("appinstalled", () => {
+    deferredInstallPrompt = null;
+    if (installBtn) installBtn.style.display = "none";
+    showToast("App installed");
+  });
+}
+
+window.installApp = async function() {
+  if (!deferredInstallPrompt) {
+    showToast("Install is available from your browser menu");
+    return;
+  }
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  document.getElementById("installAppBtn").style.display = "none";
+};
+
 // ===================== SIDEBAR TOGGLE =====================
-window.toggleSidebar = function() { document.getElementById("sidebar").classList.toggle("collapsed"); };
+window.toggleSidebar = function() {
+  const sidebar = document.getElementById("sidebar");
+  if (window.matchMedia("(max-width: 768px)").matches) {
+    document.body.classList.toggle("sidebar-open");
+    return;
+  }
+  sidebar.classList.toggle("collapsed");
+};
+
+window.closeSidebar = function() {
+  document.body.classList.remove("sidebar-open");
+};
 
 // ===================== LOGOUT =====================
 window.logout = function() {
@@ -1499,6 +1631,29 @@ function formatDateShort(d) {
   const date = new Date(d);
   if (isNaN(date)) return d;
   return date.toLocaleDateString("en-KE", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function formatDateTime(d) {
+  if (!d) return "–";
+  const date = new Date(d);
+  if (isNaN(date)) return d;
+  return date.toLocaleString("en-KE", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
+function formatAuditAction(action) {
+  return String(action || "")
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, char => char.toUpperCase());
+}
+
+function formatAuditDetails(details) {
+  const entries = Object.entries(details || {}).filter(([, value]) => value !== null && value !== undefined && value !== "");
+  if (!entries.length) return "–";
+  return entries.map(([key, value]) => {
+    const label = key.replaceAll("_", " ");
+    const formatted = Array.isArray(value) ? value.join(", ") : String(value);
+    return `${label}: ${formatted}`;
+  }).join(" · ");
 }
 
 function isOverdue(d) {

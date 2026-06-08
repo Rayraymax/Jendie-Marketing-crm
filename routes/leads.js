@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../db');
 const authMiddleware = require('../middleware/authMiddleware');
 const multer = require('multer');
+const logAudit = require('../middleware/auditLogger');
 
 // ✅ Use memoryStorage — Vercel filesystem is read-only
 const upload = multer({ storage: multer.memoryStorage() });
@@ -81,6 +82,12 @@ router.post(
           lead_source
         ]
       );
+
+      await logAudit(req, 'lead_created', 'lead', result.rows[0].id, {
+        contact_name: result.rows[0].contact_name,
+        lead_type: result.rows[0].lead_type,
+        pipeline_stage: result.rows[0].pipeline_stage
+      });
 
       res.json(result.rows[0]);
     } catch (err) {
@@ -175,6 +182,13 @@ router.put('/:id', authMiddleware, async (req, res) => {
       params
     );
 
+    await logAudit(req, 'lead_updated', 'lead', leadId, {
+      updated_fields: updates.map(update => update.split(' = ')[0]),
+      contact_name: result.rows[0].contact_name,
+      previous_stage: lead.pipeline_stage,
+      pipeline_stage: result.rows[0].pipeline_stage
+    });
+
     res.json(result.rows[0]);
   } catch (err) {
     console.error('Error updating lead:', err);
@@ -201,6 +215,11 @@ router.delete('/:id', authMiddleware, async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Lead not found' });
     }
+
+    await logAudit(req, 'lead_deleted', 'lead', leadId, {
+      contact_name: result.rows[0].contact_name,
+      lead_type: result.rows[0].lead_type
+    });
 
     res.json({ message: 'Lead deleted successfully ✅' });
   } catch (err) {

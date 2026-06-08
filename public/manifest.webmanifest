@@ -1,0 +1,25 @@
+{
+  "name": "JendieConnect CRM",
+  "short_name": "JendieCRM",
+  "description": "JendieConnect school and fleet marketing CRM",
+  "start_url": "/dashboard.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5f6fa",
+  "theme_color": "#2d1b69",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/school-crm-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/school-crm-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

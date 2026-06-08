@@ -104,6 +104,14 @@ input, select, textarea { font-family: inherit; }
 .sidebar.collapsed .nav-item { justify-content: center; padding: 10px 0; }
 .sidebar.collapsed .sidebar-brand { justify-content: center; padding: 18px 0; }
 
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.45);
+  z-index: 90;
+}
+
 /* Brand */
 .sidebar-brand {
   display: flex;
@@ -349,6 +357,7 @@ input, select, textarea { font-family: inherit; }
   font-weight: 600;
   transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
   white-space: nowrap;
+  min-height: 40px;
 }
 .btn-primary:hover { background: var(--coral-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(242,92,84,0.35); }
 
@@ -365,6 +374,7 @@ input, select, textarea { font-family: inherit; }
   font-weight: 500;
   transition: background var(--transition), border-color var(--transition);
   white-space: nowrap;
+  min-height: 40px;
 }
 .btn-ghost:hover { background: var(--surface-2); border-color: var(--border-strong); }
 
@@ -381,6 +391,7 @@ input, select, textarea { font-family: inherit; }
   font-weight: 500;
   transition: background var(--transition);
   white-space: nowrap;
+  min-height: 34px;
 }
 .btn-ghost-sm:hover { background: var(--surface-2); }
 
@@ -403,8 +414,8 @@ input, select, textarea { font-family: inherit; }
   background: none;
   border: 1px solid var(--border);
   color: var(--text-3);
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius);
   display: flex;
   align-items: center;
@@ -417,8 +428,8 @@ input, select, textarea { font-family: inherit; }
   background: none;
   border: none;
   color: var(--text-4);
-  width: 26px;
-  height: 26px;
+  width: 34px;
+  height: 34px;
   border-radius: 6px;
   display: flex;
   align-items: center;
@@ -669,8 +680,8 @@ tr { transition: background var(--transition); }
 .actions-cell { display: flex; gap: 4px; align-items: center; }
 
 .action-icon {
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   border-radius: 6px;
   display: flex;
   align-items: center;
@@ -1184,6 +1195,25 @@ tr { transition: background var(--transition); }
   font-size: 13px;
 }
 
+.audit-card { margin-top: 18px; }
+.audit-action {
+  background: var(--purple-bg);
+  border-radius: 20px;
+  color: var(--purple);
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  white-space: nowrap;
+}
+.audit-details {
+  color: var(--text-3);
+  font-size: 12px;
+  line-height: 1.5;
+  max-width: 420px;
+}
+.empty-state.compact { padding: 28px 20px; }
+
 /* ─── TOAST ─── */
 .toast {
   position: fixed;
@@ -1217,24 +1247,107 @@ tr { transition: background var(--transition); }
 }
 
 @media (max-width: 768px) {
-  :root { --sidebar-w: 60px; }
-  .sidebar { width: 60px; }
-  .brand-text, .nav-section-label, .user-info { display: none; }
-  .nav-item { justify-content: center; padding: 10px 0; }
-  .nav-item span:not(.nav-badge) { display: none; }
-  .sidebar-brand { justify-content: center; padding: 16px 0; }
+  :root { --sidebar-w: 260px; }
+  body { display: block; height: 100dvh; }
+  .sidebar {
+    bottom: 0;
+    box-shadow: var(--shadow-lg);
+    left: 0;
+    position: fixed;
+    top: 0;
+    transform: translateX(-100%);
+    transition: transform var(--transition);
+    width: min(82vw, var(--sidebar-w));
+    z-index: 100;
+  }
+  body.sidebar-open .sidebar { transform: translateX(0); }
+  body.sidebar-open .sidebar-backdrop { display: block; }
+  .brand-text, .nav-section-label, .user-info { display: block; }
+  .nav-item { justify-content: flex-start; min-height: 44px; padding: 11px 12px; }
+  .nav-item span:not(.nav-badge) { display: inline-flex; }
+  .sidebar-brand { justify-content: flex-start; padding: 18px 16px; }
+  .main-wrapper { height: 100dvh; }
 
   .topbar { padding: 0 14px; }
   .topbar-center { display: none; }
   .county-filter-wrap { display: none; }
+  .topbar-right { gap: 6px; }
+  .install-btn { display: none !important; }
 
   .content { padding: 16px; }
   .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
   .right-panel { grid-template-columns: 1fr; }
   .form-row { grid-template-columns: 1fr; }
   .kpi-value { font-size: 24px; }
+  .btn-primary,
+  .btn-ghost,
+  .btn-ghost-sm,
+  .filters-row input,
+  .filters-row select,
+  .form-group input,
+  .form-group select,
+  .form-group textarea { min-height: 44px; }
   .task-item,
   .message-lead { align-items: flex-start; flex-direction: column; }
+
+  .table-card { border-radius: var(--radius); }
+  .table-wrap { overflow-x: visible; }
+  table, thead, tbody, tr, td { display: block; width: 100%; }
+  thead { display: none; }
+  tr {
+    border-bottom: 1px solid var(--border);
+    padding: 10px 12px;
+  }
+  td {
+    align-items: flex-start;
+    border-bottom: none;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    padding: 8px 0;
+    text-align: right;
+  }
+  td::before {
+    color: var(--text-4);
+    content: "";
+    flex: 0 0 108px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-align: left;
+    text-transform: uppercase;
+  }
+  .actions-cell { justify-content: flex-end; }
+  #leadsTable td:nth-child(1)::before,
+  #leadsTableFull td:nth-child(1)::before { content: "Lead"; }
+  #leadsTable td:nth-child(2)::before,
+  #leadsTableFull td:nth-child(2)::before { content: "County"; }
+  #leadsTable td:nth-child(3)::before,
+  #leadsTableFull td:nth-child(3)::before { content: "Contact"; }
+  #leadsTable td:nth-child(4)::before { content: "Services"; }
+  #leadsTable td:nth-child(5)::before { content: "Status"; }
+  #leadsTable td:nth-child(6)::before { content: "Follow-up"; }
+  #leadsTable td:nth-child(7)::before { content: "Submitted"; }
+  #leadsTable td:nth-child(8)::before,
+  #leadsTableFull td:nth-child(12)::before { content: "Actions"; }
+  #leadsTableFull td:nth-child(4)::before { content: "Phone"; }
+  #leadsTableFull td:nth-child(5)::before { content: "Email"; }
+  #leadsTableFull td:nth-child(6)::before { content: "Visit"; }
+  #leadsTableFull td:nth-child(7)::before { content: "Services"; }
+  #leadsTableFull td:nth-child(8)::before { content: "Status"; }
+  #leadsTableFull td:nth-child(9)::before { content: "Next"; }
+  #leadsTableFull td:nth-child(10)::before { content: "Follow-up"; }
+  #leadsTableFull td:nth-child(11)::before { content: "Submitted"; }
+  #usersTable td:nth-child(1)::before { content: "ID"; }
+  #usersTable td:nth-child(2)::before { content: "Username"; }
+  #usersTable td:nth-child(3)::before { content: "Role"; }
+  #usersTable td:nth-child(4)::before { content: "Created"; }
+  #usersTable td:nth-child(5)::before { content: "Actions"; }
+  #auditTable td:nth-child(1)::before { content: "When"; }
+  #auditTable td:nth-child(2)::before { content: "Actor"; }
+  #auditTable td:nth-child(3)::before { content: "Action"; }
+  #auditTable td:nth-child(4)::before { content: "Target"; }
+  #auditTable td:nth-child(5)::before { content: "Details"; }
 }
 
 @media (max-width: 480px) {

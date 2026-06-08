@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../db');
 const bcrypt = require('bcryptjs'); // ✅
 const jwt = require('jsonwebtoken');
+const logAudit = require('../middleware/auditLogger');
 
 const ADMIN_ROLES = ['manager', 'admin', 'super_admin'];
 const VALID_ROLES = ['marketer', 'staff', 'manager', 'admin', 'super_admin'];
@@ -78,6 +79,11 @@ router.post('/', authMiddleware, authorizeRoles(...ADMIN_ROLES), async (req, res
       [username, hashedPassword, role]
     );
 
+    await logAudit(req, 'user_created', 'user', result.rows[0].id, {
+      username: result.rows[0].username,
+      role: result.rows[0].role
+    });
+
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error(err);
@@ -121,6 +127,13 @@ router.put('/:id', authMiddleware, authorizeRoles(...ADMIN_ROLES), async (req, r
     );
 
     if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+
+    await logAudit(req, 'user_updated', 'user', userId, {
+      username: result.rows[0].username,
+      role: result.rows[0].role,
+      updated_fields: updates.map(update => update.split(' = ')[0])
+    });
+
     res.json(result.rows[0]);
   } catch (err) {
     console.error(err);
@@ -136,7 +149,17 @@ router.delete('/:id', authMiddleware, authorizeRoles(...ADMIN_ROLES), async (req
     if (parseInt(req.params.id, 10) === req.user.id) {
       return res.status(400).json({ error: 'You cannot delete your own account' });
     }
-    await pool.query('DELETE FROM users WHERE id = $1', [req.params.id]);
+    const result = await pool.query(
+      'DELETE FROM users WHERE id = $1 RETURNING id, username, role',
+      [req.params.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+
+    await logAudit(req, 'user_deleted', 'user', result.rows[0].id, {
+      username: result.rows[0].username,
+      role: result.rows[0].role
+    });
+
     res.json({ message: 'User deleted successfully' });
   } catch (err) {
     console.error(err);
