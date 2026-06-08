@@ -716,6 +716,25 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   if (localStorage.getItem("theme") === "dark") document.body.classList.add("dark");
 
+  // Notification bell
+document.getElementById("notifBtn").addEventListener("click", () => {
+
+  // Open Tasks page
+  switchView("tasks");
+
+  // Show today's follow ups
+  const today = new Date().toISOString().split("T")[0];
+
+  const dateInput = document.getElementById("followUpFilterDate");
+
+  if (dateInput) {
+    dateInput.value = today;
+    filterFollowUps(today);
+  }
+
+  showToast("Today's follow-ups loaded");
+});
+
   // Nav links
   document.querySelectorAll(".nav-item").forEach(item => {
     item.addEventListener("click", e => {
